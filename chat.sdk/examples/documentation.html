@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heshev Chat SDK Playground</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* Collapsible sections */
+    .section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .section-content.open {
+      max-height: 1000px;
+    }
+
+    /* Color picker styling */
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid #d1d5db;
+      border-radius: 3px;
+    }
+
+    /* Code block styling */
+    pre[class*="language-"] {
+      margin: 0;
+      border-radius: 0.5rem;
+      font-size: 13px;
+    }
+
+    /* Chat container styling */
+    #preview-container {
+      min-height: 500px;
+    }
+
+    /* Floating mode preview */
+    #preview-container.floating-mode {
+      position: relative;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Heshev Chat SDK</h1>
+          <p class="text-sm text-gray-500">Interactive Playground</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/your-repo/heshev-chat" target="_blank" class="text-gray-500 hover:text-gray-700">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 py-6 flex gap-6">
+    <!-- Sidebar Configuration Panel -->
+    <aside class="w-80 flex-shrink-0">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-24">
+        <div class="p-4 border-b border-gray-200">
+          <h2 class="font-semibold text-gray-900">Configuration</h2>
+        </div>
+
+        <div class="p-4 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+          <!-- WebSocket URL -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">WebSocket URL</label>
+            <input type="text" id="ws-url" value="ws://172.25.119.147:3001/ws"
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+          </div>
+
+          <!-- Mode Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Display Mode</label>
+            <div class="flex rounded-lg overflow-hidden border border-gray-300">
+              <button onclick="setMode('embedded')" id="mode-embedded"
+                class="flex-1 px-4 py-2 text-sm font-medium bg-primary-600 text-white transition-colors">
+                Embedded
+              </button>
+              <button onclick="setMode('floating')" id="mode-floating"
+                class="flex-1 px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+                Floating
+              </button>
+            </div>
+          </div>
+
+          <!-- Theme Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+            <div class="flex gap-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="theme" value="light" checked class="text-primary-600 focus:ring-primary-500">
+                <span class="text-sm text-gray-700">Light</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="theme" value="dark" class="text-primary-600 focus:ring-primary-500">
+                <span class="text-sm text-gray-700">Dark</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="theme" value="auto" class="text-primary-600 focus:ring-primary-500">
+                <span class="text-sm text-gray-700">Auto</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- RTL Toggle -->
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">RTL (Right-to-Left)</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="rtl-toggle" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+
+          <!-- Colors Section -->
+          <div class="border border-gray-200 rounded-lg">
+            <button onclick="toggleSection('colors')" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50">
+              <span class="text-sm font-medium text-gray-700">Colors</span>
+              <svg id="colors-chevron" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div id="colors-content" class="section-content">
+              <div class="px-4 pb-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-600">User Bubble</span>
+                  <div class="flex gap-2">
+                    <input type="color" id="color-user-bg" value="#0066cc" title="Background">
+                    <input type="color" id="color-user-text" value="#ffffff" title="Text">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-600">Assistant Bubble</span>
+                  <div class="flex gap-2">
+                    <input type="color" id="color-assistant-bg" value="#f3f4f6" title="Background">
+                    <input type="color" id="color-assistant-text" value="#1f2937" title="Text">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-600">Follow-up Button</span>
+                  <div class="flex gap-2">
+                    <input type="color" id="color-followup-bg" value="#e5e7eb" title="Background">
+                    <input type="color" id="color-followup-text" value="#374151" title="Text">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-600">Label Color</span>
+                  <input type="color" id="color-label" value="#6b7280" title="Label">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Texts Section -->
+          <div class="border border-gray-200 rounded-lg">
+            <button onclick="toggleSection('texts')" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50">
+              <span class="text-sm font-medium text-gray-700">UI Texts</span>
+              <svg id="texts-chevron" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div id="texts-content" class="section-content">
+              <div class="px-4 pb-4 space-y-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Title</label>
+                  <input type="text" id="text-title" value="Chat" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Placeholder</label>
+                  <input type="text" id="text-placeholder" value="Type a message..." class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Empty State Title</label>
+                  <input type="text" id="text-empty-title" value="No messages yet" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Empty State Subtitle</label>
+                  <input type="text" id="text-empty-subtitle" value="Start a conversation!" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">User Label</label>
+                  <input type="text" id="text-user-label" value="You" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Assistant Label</label>
+                  <input type="text" id="text-assistant-label" value="AI Assistant" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Disclaimer</label>
+                  <input type="text" id="text-disclaimer" value="" placeholder="Optional disclaimer text" class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Context Section -->
+          <div class="border border-gray-200 rounded-lg">
+            <button onclick="toggleSection('context')" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50">
+              <span class="text-sm font-medium text-gray-700">Context</span>
+              <svg id="context-chevron" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div id="context-content" class="section-content">
+              <div class="px-4 pb-4 space-y-4">
+                <!-- File Upload -->
+                <div>
+                  <label class="block text-xs text-gray-600 mb-2">File Attachment</label>
+                  <div class="relative">
+                    <input type="file" id="context-file" accept=".txt,.json,.csv,.xml,.md" class="hidden">
+                    <label for="context-file" class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-colors">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                      </svg>
+                      <span class="text-xs text-gray-500" id="file-label">Choose file...</span>
+                    </label>
+                  </div>
+                  <button onclick="loadContextFile()" id="load-file-btn" disabled class="mt-2 w-full px-3 py-1.5 text-xs bg-gray-100 text-gray-400 rounded cursor-not-allowed">
+                    Load File
+                  </button>
+                </div>
+
+                <!-- System Instructions -->
+                <div>
+                  <label class="block text-xs text-gray-600 mb-2">System Instructions</label>
+                  <textarea id="context-instructions" rows="3" placeholder="You are a helpful assistant..."
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded resize-y"></textarea>
+                  <button onclick="loadInstructions()" class="mt-2 w-full px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
+                    Apply Instructions
+                  </button>
+                </div>
+
+                <!-- Metadata -->
+                <div>
+                  <label class="block text-xs text-gray-600 mb-2">Metadata (JSON)</label>
+                  <textarea id="context-metadata" rows="4" placeholder='{"key": "value"}'
+                    class="w-full px-2 py-1.5 text-sm font-mono border border-gray-300 rounded resize-y"></textarea>
+                  <div class="flex gap-2 mt-2">
+                    <button onclick="loadMetadata(false)" class="flex-1 px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
+                      Replace
+                    </button>
+                    <button onclick="loadMetadata(true)" class="flex-1 px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                      Merge
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Options (conditional) -->
+          <div id="floating-options" class="border border-gray-200 rounded-lg hidden">
+            <button onclick="toggleSection('floating')" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50">
+              <span class="text-sm font-medium text-gray-700">Floating Options</span>
+              <svg id="floating-chevron" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <div id="floating-content" class="section-content open">
+              <div class="px-4 pb-4 space-y-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-2">Position</label>
+                  <div class="flex gap-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="floating-position" value="bottom-right" checked class="text-primary-600">
+                      <span class="text-xs text-gray-700">Bottom Right</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="floating-position" value="bottom-left" class="text-primary-600">
+                      <span class="text-xs text-gray-700">Bottom Left</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Button Text</label>
+                  <input type="text" id="floating-button-text" value="" placeholder="Leave empty for icon only"
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Apply Button -->
+          <button onclick="applyConfiguration()" class="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            Apply Changes
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 space-y-4">
+      <!-- Tabs -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+          <div class="flex">
+            <button onclick="switchTab('preview')" id="tab-preview"
+              class="px-6 py-3 text-sm font-medium border-b-2 border-primary-600 text-primary-600">
+              Preview
+            </button>
+            <button onclick="switchTab('code')" id="tab-code"
+              class="px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+              Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div id="panel-preview" class="p-4">
+          <div id="preview-container" class="bg-white border border-gray-200 rounded-lg overflow-hidden" style="height: 500px;">
+            <!-- Chat will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Code Panel -->
+        <div id="panel-code" class="p-4 hidden">
+          <div class="relative">
+            <button onclick="copyCode()" class="absolute top-2 right-2 z-10 px-3 py-1.5 text-xs bg-gray-700 text-white rounded hover:bg-gray-600 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              Copy
+            </button>
+            <pre class="rounded-lg overflow-auto" style="max-height: 500px;"><code class="language-javascript" id="code-output"></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <div id="status-indicator" class="w-2 h-2 rounded-full bg-gray-400"></div>
+              <span id="status-text" class="text-sm text-gray-600">Initializing...</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-500">
+              <span id="token-usage">Tokens: <strong class="text-gray-900">0</strong> (input: 0, output: 0)</span>
+            </div>
+            <div class="text-sm font-mono bg-green-50 text-green-700 px-3 py-1 rounded">
+              Cost: <span id="cost-total">$0.0000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Controls -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex gap-3">
+          <button onclick="newConversation()" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            New Conversation
+          </button>
+          <button onclick="resetChat()" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            Reset
+          </button>
+          <button onclick="exportChat()" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            Export
+          </button>
+          <button onclick="toggleFloatingChat()" id="toggle-floating-btn" class="px-4 py-2 text-sm bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 hidden">
+            Toggle Chat
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Load the SDK bundle -->
+  <script src="../dist/heshev-chat.umd.js"></script>
+
+  <script>
+    // State
+    let chat = null;
+    let currentMode = 'embedded';
+    let fileContent = null;
+    let fileName = null;
+
+    // Pricing (Gemini 2.5 Pro)
+    const PRICING = {
+      inputPer1M: 1.25,
+      outputPer1M: 10.00
+    };
+
+    // Get WebSocket URL from query param or input
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ws')) {
+      document.getElementById('ws-url').value = params.get('ws');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      initChat();
+      updateCodeOutput();
+      setupEventListeners();
+    });
+
+    // Setup event listeners for real-time code updates
+    function setupEventListeners() {
+      // All inputs should update code on change
+      document.querySelectorAll('input, textarea, select').forEach(el => {
+        el.addEventListener('change', updateCodeOutput);
+        el.addEventListener('input', updateCodeOutput);
+      });
+
+      // File input handler
+      document.getElementById('context-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          fileContent = event.target.result;
+          fileName = file.name;
+          document.getElementById('file-label').textContent = file.name;
+          document.getElementById('load-file-btn').disabled = false;
+          document.getElementById('load-file-btn').classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
+          document.getElementById('load-file-btn').classList.add('bg-primary-600', 'text-white', 'hover:bg-primary-700', 'cursor-pointer');
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // Get current configuration
+    function getConfig() {
+      const config = {
+        websocketUrl: document.getElementById('ws-url').value,
+        mode: currentMode,
+        theme: document.querySelector('input[name="theme"]:checked').value,
+        rtl: document.getElementById('rtl-toggle').checked,
+      };
+
+      // Add container for embedded mode
+      if (currentMode === 'embedded') {
+        config.container = '#preview-container';
+      }
+
+      // Floating options
+      if (currentMode === 'floating') {
+        config.floatingPosition = document.querySelector('input[name="floating-position"]:checked').value;
+        const buttonText = document.getElementById('floating-button-text').value;
+        if (buttonText) {
+          config.floatingButtonText = buttonText;
+        }
+      }
+
+      // Colors (only add if different from defaults)
+      const colors = {};
+      const colorUserBg = document.getElementById('color-user-bg').value;
+      const colorUserText = document.getElementById('color-user-text').value;
+      const colorAssistantBg = document.getElementById('color-assistant-bg').value;
+      const colorAssistantText = document.getElementById('color-assistant-text').value;
+      const colorFollowupBg = document.getElementById('color-followup-bg').value;
+      const colorFollowupText = document.getElementById('color-followup-text').value;
+      const colorLabel = document.getElementById('color-label').value;
+
+      if (colorUserBg !== '#0066cc') colors.userBubble = colorUserBg;
+      if (colorUserText !== '#ffffff') colors.userBubbleText = colorUserText;
+      if (colorAssistantBg !== '#f3f4f6') colors.assistantBubble = colorAssistantBg;
+      if (colorAssistantText !== '#1f2937') colors.assistantBubbleText = colorAssistantText;
+      if (colorFollowupBg !== '#e5e7eb') colors.followUpButton = colorFollowupBg;
+      if (colorFollowupText !== '#374151') colors.followUpButtonText = colorFollowupText;
+      if (colorLabel !== '#6b7280') colors.labelColor = colorLabel;
+
+      if (Object.keys(colors).length > 0) {
+        config.colors = colors;
+      }
+
+      // Texts (only add if different from defaults)
+      const texts = {};
+      const textTitle = document.getElementById('text-title').value;
+      const textPlaceholder = document.getElementById('text-placeholder').value;
+      const textEmptyTitle = document.getElementById('text-empty-title').value;
+      const textEmptySubtitle = document.getElementById('text-empty-subtitle').value;
+      const textUserLabel = document.getElementById('text-user-label').value;
+      const textAssistantLabel = document.getElementById('text-assistant-label').value;
+      const textDisclaimer = document.getElementById('text-disclaimer').value;
+
+      if (textTitle !== 'Chat') texts.title = textTitle;
+      if (textPlaceholder !== 'Type a message...') texts.placeholder = textPlaceholder;
+      if (textEmptyTitle !== 'No messages yet') texts.emptyStateTitle = textEmptyTitle;
+      if (textEmptySubtitle !== 'Start a conversation!') texts.emptyStateSubtitle = textEmptySubtitle;
+      if (textUserLabel !== 'You') texts.userLabel = textUserLabel;
+      if (textAssistantLabel !== 'AI Assistant') texts.assistantLabel = textAssistantLabel;
+      if (textDisclaimer) texts.disclaimer = textDisclaimer;
+
+      if (Object.keys(texts).length > 0) {
+        config.texts = texts;
+      }
+
+      return config;
+    }
+
+    // Initialize chat
+    async function initChat() {
+      try {
+        updateStatus('connecting', 'Connecting...');
+
+        if (chat) {
+          chat.destroy();
+          chat = null;
+        }
+
+        // Clear container for embedded mode
+        if (currentMode === 'embedded') {
+          document.getElementById('preview-container').innerHTML = '';
+          document.getElementById('preview-container').classList.remove('floating-mode');
+        } else {
+          document.getElementById('preview-container').classList.add('floating-mode');
+          document.getElementById('preview-container').innerHTML = '<div class="flex items-center justify-center h-full text-white text-lg">Floating chat widget active. Click the button to open.</div>';
+        }
+
+        const config = getConfig();
+
+        // Add callbacks
+        config.onReady = () => {
+          updateStatus('connected', 'Connected');
+        };
+        config.onStatusChange = (status) => {
+          const statusMap = {
+            'connected': ['connected', 'Connected'],
+            'connecting': ['connecting', 'Connecting...'],
+            'disconnected': ['disconnected', 'Disconnected'],
+            'error': ['error', 'Error']
+          };
+          const [s, t] = statusMap[status] || ['disconnected', status];
+          updateStatus(s, t);
+        };
+        config.onMessage = () => {
+          updateTokenUsage();
+        };
+        config.onError = (error) => {
+          updateStatus('error', `Error: ${error.message}`);
+        };
+
+        chat = new HeshevChat(config);
+        await chat.init();
+
+        updateStatus('connected', 'Ready');
+        updateTokenUsage();
+
+      } catch (error) {
+        updateStatus('error', `Init failed: ${error.message}`);
+        console.error('Init error:', error);
+      }
+    }
+
+    // Mode switching
+    function setMode(mode) {
+      currentMode = mode;
+
+      // Update buttons
+      document.getElementById('mode-embedded').classList.toggle('bg-primary-600', mode === 'embedded');
+      document.getElementById('mode-embedded').classList.toggle('text-white', mode === 'embedded');
+      document.getElementById('mode-embedded').classList.toggle('bg-white', mode !== 'embedded');
+      document.getElementById('mode-embedded').classList.toggle('text-gray-700', mode !== 'embedded');
+
+      document.getElementById('mode-floating').classList.toggle('bg-primary-600', mode === 'floating');
+      document.getElementById('mode-floating').classList.toggle('text-white', mode === 'floating');
+      document.getElementById('mode-floating').classList.toggle('bg-white', mode !== 'floating');
+      document.getElementById('mode-floating').classList.toggle('text-gray-700', mode !== 'floating');
+
+      // Show/hide floating options
+      document.getElementById('floating-options').classList.toggle('hidden', mode !== 'floating');
+      document.getElementById('toggle-floating-btn').classList.toggle('hidden', mode !== 'floating');
+
+      updateCodeOutput();
+    }
+
+    // Apply configuration
+    async function applyConfiguration() {
+      await initChat();
+      updateCodeOutput();
+    }
+
+    // Tab switching
+    function switchTab(tab) {
+      document.getElementById('tab-preview').classList.toggle('border-primary-600', tab === 'preview');
+      document.getElementById('tab-preview').classList.toggle('text-primary-600', tab === 'preview');
+      document.getElementById('tab-preview').classList.toggle('border-transparent', tab !== 'preview');
+      document.getElementById('tab-preview').classList.toggle('text-gray-500', tab !== 'preview');
+
+      document.getElementById('tab-code').classList.toggle('border-primary-600', tab === 'code');
+      document.getElementById('tab-code').classList.toggle('text-primary-600', tab === 'code');
+      document.getElementById('tab-code').classList.toggle('border-transparent', tab !== 'code');
+      document.getElementById('tab-code').classList.toggle('text-gray-500', tab !== 'code');
+
+      document.getElementById('panel-preview').classList.toggle('hidden', tab !== 'preview');
+      document.getElementById('panel-code').classList.toggle('hidden', tab !== 'code');
+
+      if (tab === 'code') {
+        updateCodeOutput();
+        Prism.highlightAll();
+      }
+    }
+
+    // Section toggling
+    function toggleSection(section) {
+      const content = document.getElementById(`${section}-content`);
+      const chevron = document.getElementById(`${section}-chevron`);
+
+      content.classList.toggle('open');
+      chevron.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
+    }
+
+    // Update code output
+    function updateCodeOutput() {
+      const config = getConfig();
+
+      // Build code string
+      let code = `// Initialize Heshev Chat SDK\n`;
+      code += `const chat = new HeshevChat({\n`;
+      code += `  websocketUrl: '${config.websocketUrl}',\n`;
+      code += `  mode: '${config.mode}',\n`;
+
+      if (config.mode === 'embedded') {
+        code += `  container: '#chat-container',\n`;
+      }
+
+      if (config.theme !== 'light') {
+        code += `  theme: '${config.theme}',\n`;
+      }
+
+      if (config.rtl) {
+        code += `  rtl: true,\n`;
+      }
+
+      if (config.mode === 'floating') {
+        if (config.floatingPosition !== 'bottom-right') {
+          code += `  floatingPosition: '${config.floatingPosition}',\n`;
+        }
+        if (config.floatingButtonText) {
+          code += `  floatingButtonText: '${config.floatingButtonText}',\n`;
+        }
+      }
+
+      if (config.colors) {
+        code += `  colors: {\n`;
+        Object.entries(config.colors).forEach(([key, value]) => {
+          code += `    ${key}: '${value}',\n`;
+        });
+        code += `  },\n`;
+      }
+
+      if (config.texts) {
+        code += `  texts: {\n`;
+        Object.entries(config.texts).forEach(([key, value]) => {
+          code += `    ${key}: '${value}',\n`;
+        });
+        code += `  },\n`;
+      }
+
+      code += `  onReady: () => {\n`;
+      code += `    console.log('Chat is ready');\n`;
+      code += `  },\n`;
+      code += `  onMessage: (message) => {\n`;
+      code += `    console.log('New message:', message);\n`;
+      code += `  },\n`;
+      code += `  onError: (error) => {\n`;
+      code += `    console.error('Chat error:', error);\n`;
+      code += `  },\n`;
+      code += `});\n\n`;
+      code += `// Initialize the chat\n`;
+      code += `await chat.init();\n`;
+
+      // Add context loading examples if configured
+      const instructions = document.getElementById('context-instructions').value.trim();
+      const metadata = document.getElementById('context-metadata').value.trim();
+
+      if (instructions) {
+        code += `\n// Set system instructions\n`;
+        code += `await chat.setSystemInstructions(\`${instructions}\`);\n`;
+      }
+
+      if (metadata) {
+        try {
+          JSON.parse(metadata);
+          code += `\n// Load metadata\n`;
+          code += `await chat.loadMetadata(${metadata});\n`;
+        } catch (e) {
+          // Invalid JSON, skip
+        }
+      }
+
+      document.getElementById('code-output').textContent = code;
+      Prism.highlightElement(document.getElementById('code-output'));
+    }
+
+    // Copy code to clipboard
+    async function copyCode() {
+      const code = document.getElementById('code-output').textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        const btn = document.querySelector('[onclick="copyCode()"]');
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Copied!`;
+        setTimeout(() => {
+          btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Copy`;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    }
+
+    // Status updates
+    function updateStatus(status, text) {
+      const indicator = document.getElementById('status-indicator');
+      const statusText = document.getElementById('status-text');
+
+      const colors = {
+        'connected': 'bg-green-500',
+        'connecting': 'bg-yellow-500',
+        'disconnected': 'bg-gray-400',
+        'error': 'bg-red-500'
+      };
+
+      indicator.className = `w-2 h-2 rounded-full ${colors[status] || 'bg-gray-400'}`;
+      statusText.textContent = text;
+    }
+
+    // Token usage and cost
+    function updateTokenUsage() {
+      if (!chat) return;
+
+      const usage = chat.getTokenUsage();
+      const inputCost = (usage.prompt / 1_000_000) * PRICING.inputPer1M;
+      const outputCost = (usage.completion / 1_000_000) * PRICING.outputPer1M;
+      const totalCost = inputCost + outputCost;
+
+      document.getElementById('token-usage').innerHTML =
+        `Tokens: <strong class="text-gray-900">${usage.total.toLocaleString()}</strong> (input: ${usage.prompt.toLocaleString()}, output: ${usage.completion.toLocaleString()})`;
+
+      document.getElementById('cost-total').textContent = `$${totalCost.toFixed(4)}`;
+    }
+
+    // Context loading
+    async function loadContextFile() {
+      if (!chat || !fileContent) return;
+      try {
+        await chat.loadFile(fileContent, fileName);
+        updateStatus('connected', 'File loaded');
+      } catch (error) {
+        updateStatus('error', `File load failed: ${error.message}`);
+      }
+    }
+
+    async function loadInstructions() {
+      if (!chat) return;
+      const instructions = document.getElementById('context-instructions').value.trim();
+      if (!instructions) {
+        alert('Please enter system instructions');
+        return;
+      }
+      try {
+        await chat.setSystemInstructions(instructions);
+        updateStatus('connected', 'Instructions applied');
+        updateCodeOutput();
+      } catch (error) {
+        updateStatus('error', `Instructions failed: ${error.message}`);
+      }
+    }
+
+    async function loadMetadata(merge) {
+      if (!chat) return;
+      const metadataStr = document.getElementById('context-metadata').value.trim();
+      if (!metadataStr) {
+        alert('Please enter metadata JSON');
+        return;
+      }
+      try {
+        const metadata = JSON.parse(metadataStr);
+        await chat.loadMetadata(metadata, merge);
+        updateStatus('connected', merge ? 'Metadata merged' : 'Metadata replaced');
+        updateCodeOutput();
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          alert('Invalid JSON');
+        } else {
+          updateStatus('error', `Metadata failed: ${error.message}`);
+        }
+      }
+    }
+
+    // Chat controls
+    function newConversation() {
+      if (!chat) return;
+      chat.new();
+      updateStatus('connected', 'New conversation');
+    }
+
+    function resetChat() {
+      if (!chat) return;
+      chat.reset();
+      updateTokenUsage();
+      updateStatus('connected', 'Chat reset');
+    }
+
+    function exportChat() {
+      if (!chat) return;
+      const data = chat.export();
+      console.log('Exported data:', data);
+      alert(`Exported ${data.messages.length} messages\nTotal tokens: ${data.tokenUsage.total}`);
+    }
+
+    function toggleFloatingChat() {
+      if (!chat || currentMode !== 'floating') return;
+      chat.toggle();
+    }
+  </script>
+</body>
+</html>
