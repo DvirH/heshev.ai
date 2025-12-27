@@ -1,3 +1,4 @@
+import Markdown from 'react-markdown';
 import type { ChatMessage, UITexts } from '../types/config';
 import { useStreamingText } from '../hooks/useStreamingText';
 
@@ -54,7 +55,11 @@ export function MessageBubble({ message, texts }: MessageBubbleProps) {
         </div>
       )}
       <div className="heshev-chat__bubble-content">
-        {displayedText || (message.isStreaming ? '' : message.content)}
+        {message.role === 'assistant' ? (
+          <Markdown>{displayedText || message.content}</Markdown>
+        ) : (
+          displayedText || (message.isStreaming ? '' : message.content)
+        )}
       </div>
     </div>
   );

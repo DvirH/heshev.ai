@@ -120,7 +120,7 @@
   padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
   border-radius: var(--heshev-border-radius);
   word-wrap: break-word;
-  white-space: pre-wrap;
+  white-space: normal;
 }
 
 .heshev-chat__bubble--user {
@@ -154,6 +154,49 @@
 .heshev-chat__bubble--streaming .heshev-chat__bubble-content::after {
   content: '|';
   animation: blink 1s step-end infinite;
+}
+
+/* Markdown content styles */
+.heshev-chat__bubble-content p {
+  margin: 0 0 0.5em 0;
+}
+
+.heshev-chat__bubble-content p:last-child {
+  margin-bottom: 0;
+}
+
+.heshev-chat__bubble-content ul,
+.heshev-chat__bubble-content ol {
+  margin: 0.5em 0;
+  padding-inline-start: 1.5em;
+}
+
+.heshev-chat__bubble-content li {
+  margin: 0.25em 0;
+}
+
+.heshev-chat__bubble-content strong {
+  font-weight: 600;
+}
+
+.heshev-chat__bubble-content code {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.heshev-chat__bubble-content pre {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.5em;
+  border-radius: var(--heshev-border-radius-sm);
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.heshev-chat__bubble-content pre code {
+  background: none;
+  padding: 0;
 }
 
 /* Bubble header (label + timestamp) */
