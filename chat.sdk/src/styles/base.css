@@ -1,0 +1,63 @@
+/* Base reset for Heshev Chat */
+.heshev-chat,
+.heshev-chat *,
+.heshev-chat *::before,
+.heshev-chat *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.heshev-chat {
+  font-family: var(--heshev-font-family);
+  font-size: var(--heshev-font-size);
+  line-height: var(--heshev-line-height);
+  color: var(--heshev-text);
+  background-color: var(--heshev-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.heshev-chat button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.heshev-chat button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.heshev-chat input,
+.heshev-chat textarea {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  outline: none;
+}
+
+.heshev-chat input::placeholder,
+.heshev-chat textarea::placeholder {
+  color: var(--heshev-text-muted);
+}
+
+/* Scrollbar styling */
+.heshev-chat ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.heshev-chat ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.heshev-chat ::-webkit-scrollbar-thumb {
+  background-color: var(--heshev-border);
+  border-radius: 3px;
+}
+
+.heshev-chat ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--heshev-text-muted);
+}

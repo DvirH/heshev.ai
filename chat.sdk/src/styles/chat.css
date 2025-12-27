@@ -1,0 +1,333 @@
+/* Main chat container */
+.heshev-chat {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: var(--heshev-border-radius);
+  border: 1px solid var(--heshev-border);
+  overflow: hidden;
+}
+
+/* Embedded mode */
+.heshev-chat--embedded {
+  border-radius: var(--heshev-border-radius);
+}
+
+/* Header */
+.heshev-chat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--heshev-spacing-md);
+  background-color: var(--heshev-bg);
+  border-bottom: 1px solid var(--heshev-border);
+  flex-shrink: 0;
+}
+
+.heshev-chat__header-title {
+  font-size: var(--heshev-font-size-lg);
+  font-weight: 600;
+  color: var(--heshev-text);
+}
+
+.heshev-chat__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--heshev-spacing-sm);
+}
+
+.heshev-chat__header-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--heshev-border-radius-sm);
+  color: var(--heshev-text-secondary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.heshev-chat__header-btn:hover {
+  background-color: var(--heshev-bg-secondary);
+  color: var(--heshev-text);
+}
+
+/* Status indicator */
+.heshev-chat__status {
+  display: flex;
+  align-items: center;
+  gap: var(--heshev-spacing-xs);
+  font-size: var(--heshev-font-size-sm);
+  color: var(--heshev-text-secondary);
+}
+
+.heshev-chat__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--heshev-status-disconnected);
+}
+
+.heshev-chat__status-dot--connected {
+  background-color: var(--heshev-status-connected);
+}
+
+.heshev-chat__status-dot--connecting {
+  background-color: var(--heshev-status-connecting);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Messages area */
+.heshev-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--heshev-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--heshev-spacing-md);
+}
+
+.heshev-chat__messages--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.heshev-chat__empty-state {
+  text-align: center;
+  color: var(--heshev-text-muted);
+  padding: var(--heshev-spacing-lg);
+}
+
+.heshev-chat__empty-state-icon {
+  font-size: 48px;
+  margin-bottom: var(--heshev-spacing-md);
+  opacity: 0.5;
+}
+
+/* Message bubble */
+.heshev-chat__bubble {
+  max-width: 80%;
+  padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
+  border-radius: var(--heshev-border-radius);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.heshev-chat__bubble--user {
+  align-self: flex-end;
+  background-color: var(--heshev-bubble-user);
+  color: var(--heshev-bubble-user-text);
+  border-bottom-right-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat__bubble--assistant {
+  align-self: flex-start;
+  background-color: var(--heshev-bubble-assistant);
+  color: var(--heshev-bubble-assistant-text);
+  border-bottom-left-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat__bubble--system {
+  align-self: center;
+  max-width: 90%;
+  background-color: var(--heshev-bubble-system);
+  color: var(--heshev-bubble-system-text);
+  font-size: var(--heshev-font-size-sm);
+  text-align: center;
+}
+
+.heshev-chat__bubble--streaming {
+  position: relative;
+}
+
+.heshev-chat__bubble--streaming::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+/* Typing indicator */
+.heshev-chat__typing {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--heshev-spacing-xs);
+  padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
+  background-color: var(--heshev-bubble-assistant);
+  border-radius: var(--heshev-border-radius);
+  border-bottom-left-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat__typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--heshev-text-muted);
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.heshev-chat__typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.heshev-chat__typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Input area */
+.heshev-chat__input-area {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--heshev-spacing-sm);
+  padding: var(--heshev-spacing-md);
+  background-color: var(--heshev-bg);
+  border-top: 1px solid var(--heshev-border);
+  flex-shrink: 0;
+}
+
+.heshev-chat__input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--heshev-bg-secondary);
+  border-radius: var(--heshev-border-radius);
+  border: 1px solid var(--heshev-border);
+  transition: border-color 0.2s;
+}
+
+.heshev-chat__input-wrapper:focus-within {
+  border-color: var(--heshev-primary);
+}
+
+.heshev-chat__input {
+  flex: 1;
+  resize: none;
+  padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
+  background: transparent;
+  color: var(--heshev-text);
+  min-height: 40px;
+  max-height: 120px;
+}
+
+.heshev-chat__send-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--heshev-primary);
+  color: white;
+  border-radius: var(--heshev-border-radius);
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.heshev-chat__send-btn:hover:not(:disabled) {
+  background-color: var(--heshev-primary-hover);
+}
+
+.heshev-chat__send-btn:disabled {
+  background-color: var(--heshev-border);
+}
+
+/* Floating button */
+.heshev-chat__floating-btn {
+  position: fixed;
+  width: var(--heshev-floating-size);
+  height: var(--heshev-floating-size);
+  border-radius: 50%;
+  background-color: var(--heshev-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--heshev-shadow);
+  transition: transform 0.2s, background-color 0.2s;
+  z-index: 9999;
+}
+
+.heshev-chat__floating-btn:hover {
+  transform: scale(1.05);
+  background-color: var(--heshev-primary-hover);
+}
+
+.heshev-chat__floating-btn--bottom-right {
+  bottom: var(--heshev-floating-offset);
+  right: var(--heshev-floating-offset);
+}
+
+.heshev-chat__floating-btn--bottom-left {
+  bottom: var(--heshev-floating-offset);
+  left: var(--heshev-floating-offset);
+}
+
+/* Floating overlay */
+.heshev-chat__overlay {
+  position: fixed;
+  z-index: 9998;
+  box-shadow: var(--heshev-shadow);
+  border-radius: var(--heshev-border-radius-lg);
+  overflow: hidden;
+  width: var(--heshev-chat-width);
+  height: var(--heshev-chat-height);
+  max-height: var(--heshev-chat-max-height);
+}
+
+.heshev-chat__overlay--bottom-right {
+  bottom: calc(var(--heshev-floating-offset) + var(--heshev-floating-size) + 16px);
+  right: var(--heshev-floating-offset);
+}
+
+.heshev-chat__overlay--bottom-left {
+  bottom: calc(var(--heshev-floating-offset) + var(--heshev-floating-size) + 16px);
+  left: var(--heshev-floating-offset);
+}
+
+/* Server status banner */
+.heshev-chat__server-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--heshev-spacing-xs);
+  padding: var(--heshev-spacing-xs) var(--heshev-spacing-md);
+  background-color: var(--heshev-bg-secondary);
+  font-size: var(--heshev-font-size-sm);
+  color: var(--heshev-text-secondary);
+}
+
+.heshev-chat__server-status--processing {
+  background-color: var(--heshev-bubble-system);
+  color: var(--heshev-bubble-system-text);
+}
+
+/* RTL Support */
+.heshev-chat--rtl {
+  direction: rtl;
+}
+
+.heshev-chat--rtl .heshev-chat__bubble--user {
+  align-self: flex-start;
+  border-bottom-right-radius: var(--heshev-border-radius);
+  border-bottom-left-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat--rtl .heshev-chat__bubble--assistant {
+  align-self: flex-end;
+  border-bottom-left-radius: var(--heshev-border-radius);
+  border-bottom-right-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat--rtl .heshev-chat__typing {
+  align-self: flex-end;
+  border-bottom-left-radius: var(--heshev-border-radius);
+  border-bottom-right-radius: var(--heshev-spacing-xs);
+}
+
+.heshev-chat--rtl .heshev-chat__input-area {
+  flex-direction: row-reverse;
+}
+
+.heshev-chat--rtl .heshev-chat__header-actions {
+  flex-direction: row-reverse;
+}
