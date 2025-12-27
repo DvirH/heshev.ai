@@ -351,12 +351,18 @@
     /* Status */
     .status-bar {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
       padding: 12px 15px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .status-text {
@@ -375,6 +381,37 @@
 
     .token-usage strong {
       color: #0066cc;
+    }
+
+    .cost-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .cost-breakdown {
+      color: #666;
+    }
+
+    .cost-total {
+      font-family: monospace;
+      background: linear-gradient(135deg, #f0f7ff, #e8f5e9);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+
+    .cost-total .usd {
+      font-size: 14px;
+    }
+
+    .model-info {
+      font-size: 11px;
+      color: #999;
     }
   </style>
 </head>
@@ -477,10 +514,21 @@
         </div>
 
         <div class="status-bar">
-          <span class="status-text" id="status">סטטוס: מאתחל...</span>
-          <span class="token-usage" id="token-usage">
-            טוקנים: <strong>0</strong> (קלט: 0, פלט: 0)
-          </span>
+          <div class="status-row">
+            <span class="status-text" id="status">סטטוס: מאתחל...</span>
+            <span class="token-usage" id="token-usage">
+              טוקנים: <strong>0</strong> (קלט: 0, פלט: 0)
+            </span>
+          </div>
+          <div class="cost-display">
+            <span class="cost-breakdown" id="cost-breakdown">
+              <span class="model-info">Gemini 2.5 Pro</span> ·
+              קלט: $0.0000 · פלט: $0.0000
+            </span>
+            <span class="cost-total">
+              סה"כ: <span class="usd" id="cost-total">$0.0000</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -494,6 +542,30 @@
     let savedState = null;
     let fileContent = null;
     let fileName = null;
+
+    // Gemini 2.5 Pro pricing (USD per 1M tokens)
+    // Source: https://ai.google.dev/pricing
+    const MODEL_PRICING = {
+      name: 'Gemini 2.5 Pro',
+      inputPer1M: 1.25,   // $1.25 per 1M input tokens
+      outputPer1M: 10.00, // $10.00 per 1M output tokens (thinking included)
+    };
+
+    function calculateCost(promptTokens, completionTokens) {
+      const inputCost = (promptTokens / 1_000_000) * MODEL_PRICING.inputPer1M;
+      const outputCost = (completionTokens / 1_000_000) * MODEL_PRICING.outputPer1M;
+      return {
+        input: inputCost,
+        output: outputCost,
+        total: inputCost + outputCost,
+      };
+    }
+
+    function formatCost(cost) {
+      if (cost < 0.0001) return '$0.0000';
+      if (cost < 0.01) return '$' + cost.toFixed(4);
+      return '$' + cost.toFixed(4);
+    }
 
     // Get WebSocket URL from query param (?ws=...) or default
     const params = new URLSearchParams(window.location.search);
@@ -557,8 +629,16 @@
     function updateTokenUsage() {
       if (!chat) return;
       const usage = chat.getTokenUsage();
+      const cost = calculateCost(usage.prompt, usage.completion);
+
       document.getElementById('token-usage').innerHTML =
         `טוקנים: <strong>${usage.total.toLocaleString()}</strong> (קלט: ${usage.prompt.toLocaleString()}, פלט: ${usage.completion.toLocaleString()})`;
+
+      document.getElementById('cost-breakdown').innerHTML =
+        `<span class="model-info">${MODEL_PRICING.name}</span> · ` +
+        `קלט: ${formatCost(cost.input)} · פלט: ${formatCost(cost.output)}`;
+
+      document.getElementById('cost-total').textContent = formatCost(cost.total);
     }
 
     // File handling
