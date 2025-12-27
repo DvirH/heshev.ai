@@ -44,6 +44,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
   border-radius: var(--heshev-border-radius-sm);
   color: var(--heshev-text-secondary);
   transition: background-color 0.2s, color 0.2s;
@@ -126,6 +127,7 @@
   align-self: flex-start;
   background-color: var(--heshev-bubble-assistant);
   color: var(--heshev-bubble-assistant-text);
+  border: 1px solid var(--heshev-bubble-assistant-border);
   border-bottom-left-radius: var(--heshev-spacing-xs);
 }
 
@@ -142,9 +144,39 @@
   position: relative;
 }
 
-.heshev-chat__bubble--streaming::after {
+.heshev-chat__bubble--streaming .heshev-chat__bubble-content::after {
   content: '|';
   animation: blink 1s step-end infinite;
+}
+
+/* Bubble header (label + timestamp) */
+.heshev-chat__bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--heshev-spacing-xs);
+  gap: var(--heshev-spacing-sm);
+}
+
+.heshev-chat__bubble-label {
+  font-size: var(--heshev-font-size-xs);
+  font-weight: 500;
+}
+
+.heshev-chat__bubble-timestamp {
+  font-size: 10px;
+}
+
+/* User bubble meta colors (white) */
+.heshev-chat__bubble--user .heshev-chat__bubble-label,
+.heshev-chat__bubble--user .heshev-chat__bubble-timestamp {
+  color: var(--heshev-bubble-user-meta);
+}
+
+/* Assistant bubble meta colors (gray) */
+.heshev-chat__bubble--assistant .heshev-chat__bubble-label,
+.heshev-chat__bubble--assistant .heshev-chat__bubble-timestamp {
+  color: var(--heshev-bubble-assistant-meta);
 }
 
 /* Typing indicator */
@@ -218,6 +250,7 @@
   justify-content: center;
   background-color: var(--heshev-primary);
   color: white;
+  border: none;
   border-radius: var(--heshev-border-radius);
   transition: background-color 0.2s;
   flex-shrink: 0;
@@ -236,6 +269,7 @@
   position: fixed;
   width: var(--heshev-floating-size);
   height: var(--heshev-floating-size);
+  border: none;
   border-radius: 50%;
   background-color: var(--heshev-primary);
   color: white;
@@ -330,4 +364,58 @@
 
 .heshev-chat--rtl .heshev-chat__header-actions {
   flex-direction: row-reverse;
+}
+
+/* Follow-up Questions */
+.heshev-chat__follow-up {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 0;
+  margin: var(--heshev-spacing-sm) 0;
+  background: transparent;
+  border: none;
+}
+
+.heshev-chat__follow-up-prompt {
+  display: block;
+  font-size: var(--heshev-font-size-sm);
+  color: var(--heshev-text-secondary);
+  margin-bottom: var(--heshev-spacing-sm);
+}
+
+.heshev-chat__follow-up-questions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--heshev-spacing-sm);
+}
+
+.heshev-chat__follow-up-btn {
+  background-color: var(--heshev-follow-up-btn);
+  color: var(--heshev-follow-up-btn-text);
+  border: 1px solid var(--heshev-follow-up-btn-border);
+  border-radius: var(--heshev-border-radius);
+  padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
+  text-align: end;
+  cursor: pointer;
+  font-size: var(--heshev-font-size-sm);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.heshev-chat__follow-up-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.heshev-chat__follow-up-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* RTL Support for Follow-up Questions */
+.heshev-chat--rtl .heshev-chat__follow-up {
+  align-self: flex-end;
+}
+
+.heshev-chat--rtl .heshev-chat__follow-up-btn {
+  text-align: start;
 }

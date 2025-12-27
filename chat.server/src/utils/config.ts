@@ -11,6 +11,8 @@ export interface Config {
   maxTokens: number;
   temperature: number;
   sessionTimeoutMs: number;
+  followUpQuestionsEnabled: boolean;
+  followUpQuestionsCount: number;
 }
 
 function getEnvVar(name: string, defaultValue?: string): string {
@@ -45,6 +47,14 @@ function getEnvFloat(name: string, defaultValue: number): number {
   return parsed;
 }
 
+function getEnvBool(name: string, defaultValue: boolean): boolean {
+  const value = process.env[name];
+  if (value === undefined) {
+    return defaultValue;
+  }
+  return value.toLowerCase() === 'true';
+}
+
 export const config: Config = {
   port: getEnvNumber('PORT', 3001),
   wsPath: getEnvVar('WS_PATH', '/ws'),
@@ -54,4 +64,6 @@ export const config: Config = {
   maxTokens: getEnvNumber('MAX_TOKENS', 4096),
   temperature: getEnvFloat('TEMPERATURE', 0.7),
   sessionTimeoutMs: getEnvNumber('SESSION_TIMEOUT_MS', 3600000),
+  followUpQuestionsEnabled: getEnvBool('FOLLOW_UP_QUESTIONS_ENABLED', true),
+  followUpQuestionsCount: getEnvNumber('FOLLOW_UP_QUESTIONS_COUNT', 3),
 };

@@ -1,11 +1,20 @@
-import type { ChatMessage } from '../types/config';
+import type { ChatMessage, UITexts } from '../types/config';
 import { useStreamingText } from '../hooks/useStreamingText';
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  texts: UITexts;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+export function MessageBubble({ message, texts }: MessageBubbleProps) {
   const displayedText = useStreamingText({
     text: message.content,
     isStreaming: message.isStreaming ?? false,
@@ -33,9 +42,20 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     return classes.join(' ');
   };
 
+  const label = message.role === 'user' ? texts.userLabel : texts.assistantLabel;
+  const timestamp = formatTime(message.timestamp);
+
   return (
     <div className={getBubbleClass()}>
-      {displayedText || (message.isStreaming ? '' : message.content)}
+      {message.role !== 'system' && (
+        <div className="heshev-chat__bubble-header">
+          <span className="heshev-chat__bubble-label">{label}</span>
+          <span className="heshev-chat__bubble-timestamp">{timestamp}</span>
+        </div>
+      )}
+      <div className="heshev-chat__bubble-content">
+        {displayedText || (message.isStreaming ? '' : message.content)}
+      </div>
     </div>
   );
 }

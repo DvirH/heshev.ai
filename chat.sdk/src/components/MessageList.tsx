@@ -1,11 +1,15 @@
 import { useEffect, useRef } from 'react';
 import type { ChatMessage, UITexts } from '../types/config';
 import { MessageBubble } from './MessageBubble';
+import { FollowUpQuestions } from './FollowUpQuestions';
 
 interface MessageListProps {
   messages: ChatMessage[];
   serverStatus: 'idle' | 'typing' | 'processing';
   texts: UITexts;
+  currentFollowUpQuestions?: string[];
+  onFollowUpClick?: (question: string) => void;
+  canInteract?: boolean;
 }
 
 function TypingIndicator() {
@@ -28,7 +32,14 @@ function EmptyState({ texts }: { texts: UITexts }) {
   );
 }
 
-export function MessageList({ messages, serverStatus, texts }: MessageListProps) {
+export function MessageList({
+  messages,
+  serverStatus,
+  texts,
+  currentFollowUpQuestions,
+  onFollowUpClick,
+  canInteract = true,
+}: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,10 +48,15 @@ export function MessageList({ messages, serverStatus, texts }: MessageListProps)
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, serverStatus]);
+  }, [messages, serverStatus, currentFollowUpQuestions]);
 
   const isEmpty = messages.length === 0;
   const showTyping = serverStatus === 'typing' && !messages.some(m => m.isStreaming);
+  const showFollowUp =
+    currentFollowUpQuestions &&
+    currentFollowUpQuestions.length > 0 &&
+    serverStatus === 'idle' &&
+    !messages.some(m => m.isStreaming);
 
   const containerClass = isEmpty
     ? 'heshev-chat__messages heshev-chat__messages--empty'
@@ -53,9 +69,17 @@ export function MessageList({ messages, serverStatus, texts }: MessageListProps)
       ) : (
         <>
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+            <MessageBubble key={message.id} message={message} texts={texts} />
           ))}
           {showTyping && <TypingIndicator />}
+          {showFollowUp && onFollowUpClick && (
+            <FollowUpQuestions
+              questions={currentFollowUpQuestions}
+              promptText={texts.followUpPrompt}
+              onQuestionClick={onFollowUpClick}
+              disabled={!canInteract}
+            />
+          )}
           <div ref={messagesEndRef} />
         </>
       )}

@@ -17,6 +17,17 @@ export interface HeshevChatConfig {
   theme?: Theme;
   rtl?: boolean;
 
+  // Color customization
+  colors?: {
+    userBubble?: string;
+    userBubbleText?: string;
+    assistantBubble?: string;
+    assistantBubbleText?: string;
+    followUpButton?: string;
+    followUpButtonText?: string;
+    labelColor?: string;
+  };
+
   // UI texts
   texts?: {
     title?: string;
@@ -63,6 +74,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  followUpQuestions?: string[];
 }
 
 export interface TokenUsage {
@@ -77,6 +89,7 @@ export interface ChatState {
   isConnected: boolean;
   isReady: boolean;
   serverStatus: 'idle' | 'typing' | 'processing';
+  currentFollowUpQuestions?: string[];
 }
 
 export interface SavedState {
@@ -98,4 +111,7 @@ export interface UITexts {
   statusError: string;
   processing: string;
   closeButton: string;
+  followUpPrompt: string;
+  userLabel: string;
+  assistantLabel: string;
 }

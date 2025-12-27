@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>חשב צ'אט - דוגמה מוטמעת</title>
+  <title>חשב צ'אט - פיתוח</title>
   <style>
     * {
       box-sizing: border-box;
@@ -417,7 +417,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>חשב צ'אט - מצב מוטמע</h1>
+    <h1>חשב צ'אט - מצב פיתוח</h1>
 
     <div class="content">
       <!-- Context Panel -->
@@ -534,21 +534,19 @@
     </div>
   </div>
 
-  <!-- Load the SDK bundle -->
-  <script src="../dist/heshev-chat.umd.js"></script>
+  <script type="module">
+    import { HeshevChat } from './src/index.ts';
 
-  <script>
     let chat;
     let savedState = null;
     let fileContent = null;
     let fileName = null;
 
     // Gemini 2.5 Pro pricing (USD per 1M tokens)
-    // Source: https://ai.google.dev/pricing
     const MODEL_PRICING = {
       name: 'Gemini 2.5 Pro',
-      inputPer1M: 1.25,   // $1.25 per 1M input tokens
-      outputPer1M: 10.00, // $10.00 per 1M output tokens (thinking included)
+      inputPer1M: 1.25,
+      outputPer1M: 10.00,
     };
 
     function calculateCost(promptTokens, completionTokens) {
@@ -665,15 +663,16 @@
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    function clearFile() {
+    // Expose functions to window for onclick handlers
+    window.clearFile = function() {
       fileContent = null;
       fileName = null;
       document.getElementById('file-input').value = '';
       document.getElementById('file-info').classList.remove('visible');
       document.getElementById('load-file-btn').disabled = true;
-    }
+    };
 
-    async function loadFile() {
+    window.loadFile = async function() {
       if (!fileContent) {
         alert('נא לבחור קובץ תחילה');
         return;
@@ -685,10 +684,9 @@
       } catch (error) {
         updateStatus(`טעינת הקובץ נכשלה: ${error.message}`);
       }
-    }
+    };
 
-    // Instructions handling
-    async function loadInstructions() {
+    window.loadInstructions = async function() {
       const instructions = document.getElementById('instructions-input').value.trim();
       if (!instructions) {
         alert('נא להזין הוראות מערכת');
@@ -701,10 +699,9 @@
       } catch (error) {
         updateStatus(`החלת ההוראות נכשלה: ${error.message}`);
       }
-    }
+    };
 
-    // Metadata handling
-    function switchMetadataTab(tab) {
+    window.switchMetadataTab = function(tab) {
       const tabs = document.querySelectorAll('.metadata-tab');
       const contents = document.querySelectorAll('.metadata-content');
 
@@ -714,17 +711,15 @@
       if (tab === 'form') {
         tabs[0].classList.add('active');
         document.getElementById('metadata-form').classList.add('active');
-        // Sync JSON to form
         syncJsonToForm();
       } else {
         tabs[1].classList.add('active');
         document.getElementById('metadata-json').classList.add('active');
-        // Sync form to JSON
         syncFormToJson();
       }
-    }
+    };
 
-    function addKvRow(key = '', value = '') {
+    window.addKvRow = function(key = '', value = '') {
       const tbody = document.getElementById('kv-tbody');
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -733,12 +728,12 @@
         <td><button class="kv-delete" onclick="deleteKvRow(this)">×</button></td>
       `;
       tbody.appendChild(row);
-    }
+    };
 
-    function deleteKvRow(btn) {
+    window.deleteKvRow = function(btn) {
       btn.closest('tr').remove();
       syncFormToJson();
-    }
+    };
 
     function escapeHtml(str) {
       const div = document.createElement('div');
@@ -754,7 +749,6 @@
         const key = inputs[0].value.trim();
         const value = inputs[1].value.trim();
         if (key) {
-          // Try to parse value as JSON for complex types
           try {
             data[key] = JSON.parse(value);
           } catch {
@@ -765,13 +759,13 @@
       return data;
     }
 
-    function syncFormToJson() {
+    window.syncFormToJson = function() {
       const data = getFormData();
       const jsonInput = document.getElementById('json-input');
       jsonInput.value = JSON.stringify(data, null, 2);
       jsonInput.classList.remove('error');
       document.getElementById('json-error').classList.remove('visible');
-    }
+    };
 
     function syncJsonToForm() {
       const jsonInput = document.getElementById('json-input');
@@ -782,13 +776,10 @@
         jsonInput.classList.remove('error');
         document.getElementById('json-error').classList.remove('visible');
 
-        // Clear existing rows
         tbody.innerHTML = '';
-
-        // Add rows for each key-value pair
         Object.entries(data).forEach(([key, value]) => {
           const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
-          addKvRow(key, valueStr);
+          window.addKvRow(key, valueStr);
         });
       } catch (e) {
         jsonInput.classList.add('error');
@@ -796,7 +787,6 @@
       }
     }
 
-    // Validate JSON on input
     document.getElementById('json-input').addEventListener('blur', function() {
       try {
         JSON.parse(this.value || '{}');
@@ -809,7 +799,6 @@
     });
 
     function getMetadata() {
-      // Check which tab is active
       const isFormActive = document.getElementById('metadata-form').classList.contains('active');
 
       if (isFormActive) {
@@ -825,7 +814,7 @@
       }
     }
 
-    async function loadMetadata() {
+    window.loadMetadata = async function() {
       const data = getMetadata();
       if (data === null) return;
       if (Object.keys(data).length === 0) {
@@ -840,9 +829,9 @@
       } catch (error) {
         updateStatus(`טעינת המידע נכשלה: ${error.message}`);
       }
-    }
+    };
 
-    async function loadMetadataMerge() {
+    window.loadMetadataMerge = async function() {
       const data = getMetadata();
       if (data === null) return;
       if (Object.keys(data).length === 0) {
@@ -857,33 +846,32 @@
       } catch (error) {
         updateStatus(`מיזוג המידע נכשל: ${error.message}`);
       }
-    }
+    };
 
-    // Chat controls
-    function newConversation() {
+    window.newConversation = function() {
       chat.new();
       updateStatus('שיחה חדשה החלה');
-    }
+    };
 
-    function resetChat() {
+    window.resetChat = function() {
       chat.reset();
       updateTokenUsage();
       updateStatus('הצ\'אט אופס');
-    }
+    };
 
-    function exportChat() {
+    window.exportChat = function() {
       const data = chat.export();
       console.log('נתונים מיוצאים:', data);
       alert(`יוצאו ${data.messages.length} הודעות\nסה"כ טוקנים: ${data.tokenUsage.total}`);
-    }
+    };
 
-    function saveState() {
+    window.saveState = function() {
       savedState = chat.saveState();
       console.log('מצב נשמר:', savedState);
       updateStatus('המצב נשמר');
-    }
+    };
 
-    function loadSavedState() {
+    window.loadSavedState = function() {
       if (savedState) {
         chat.loadState(savedState);
         updateTokenUsage();
@@ -891,7 +879,7 @@
       } else {
         alert('אין מצב שמור זמין');
       }
-    }
+    };
 
     // Initialize on page load
     initChat();

@@ -37,6 +37,9 @@ const DEFAULT_TEXTS_HE: UITexts = {
   statusError: 'שגיאה',
   processing: 'מעבד...',
   closeButton: 'סגור צ\'אט',
+  followUpPrompt: 'אולי תרצה לדעת:',
+  userLabel: 'משתמש',
+  assistantLabel: 'חשב AI',
 };
 
 const DEFAULT_TEXTS_EN: UITexts = {
@@ -52,10 +55,14 @@ const DEFAULT_TEXTS_EN: UITexts = {
   statusError: 'Error',
   processing: 'Processing...',
   closeButton: 'Close chat',
+  followUpPrompt: 'Would you like to know:',
+  userLabel: 'You',
+  assistantLabel: 'AI Accountant',
 };
 
 export class HeshevChat extends EventEmitter {
-  private config: Required<Omit<HeshevChatConfig, 'container' | 'texts' | 'metadata' | 'systemInstructions' | 'fileContent'>> & { container?: string | HTMLElement };
+  private config: Required<Omit<HeshevChatConfig, 'container' | 'texts' | 'metadata' | 'systemInstructions' | 'fileContent' | 'colors'>> & { container?: string | HTMLElement };
+  private colors?: HeshevChatConfig['colors'];
   private texts: UITexts;
   private wsClient: WebSocketClient;
   private stateManager: StateManager;
@@ -108,6 +115,9 @@ export class HeshevChat extends EventEmitter {
       ...config.texts,
     };
 
+    // Store custom colors
+    this.colors = config.colors;
+
     // Initialize core modules
     this.wsClient = new WebSocketClient({
       url: config.websocketUrl,
@@ -158,7 +168,11 @@ export class HeshevChat extends EventEmitter {
     });
 
     this.wsClient.on('complete', (payload: CompleteMessage['payload']) => {
-      this.stateManager.completeStreamingMessage(payload.content, payload.tokenUsage);
+      this.stateManager.completeStreamingMessage(
+        payload.content,
+        payload.tokenUsage,
+        payload.followUpQuestions
+      );
       this.config.onMessage({
         id: payload.messageId,
         role: 'assistant',
@@ -195,6 +209,9 @@ export class HeshevChat extends EventEmitter {
     if (this.config.cssOverrides) {
       injectStyles(this.config.cssOverrides, 'heshev-chat-overrides');
     }
+
+    // Apply custom colors
+    this.applyCustomColors();
 
     // Setup UI based on mode
     if (this.config.mode === 'embedded') {
@@ -236,6 +253,35 @@ export class HeshevChat extends EventEmitter {
     this.render();
   }
 
+  private applyCustomColors(): void {
+    if (!this.colors) return;
+
+    const root = document.documentElement;
+    const { colors } = this;
+
+    if (colors.userBubble) {
+      root.style.setProperty('--heshev-bubble-user', colors.userBubble);
+    }
+    if (colors.userBubbleText) {
+      root.style.setProperty('--heshev-bubble-user-text', colors.userBubbleText);
+    }
+    if (colors.assistantBubble) {
+      root.style.setProperty('--heshev-bubble-assistant', colors.assistantBubble);
+    }
+    if (colors.assistantBubbleText) {
+      root.style.setProperty('--heshev-bubble-assistant-text', colors.assistantBubbleText);
+    }
+    if (colors.followUpButton) {
+      root.style.setProperty('--heshev-follow-up-btn', colors.followUpButton);
+    }
+    if (colors.followUpButtonText) {
+      root.style.setProperty('--heshev-follow-up-btn-text', colors.followUpButtonText);
+    }
+    if (colors.labelColor) {
+      root.style.setProperty('--heshev-label-color', colors.labelColor);
+    }
+  }
+
   private render(): void {
     if (!this.root) return;
 
@@ -253,6 +299,7 @@ export class HeshevChat extends EventEmitter {
           texts: this.texts,
           onSend: this.handleSend.bind(this),
           isEmbedded: true,
+          currentFollowUpQuestions: state.currentFollowUpQuestions,
         })
       );
     } else {
@@ -286,6 +333,7 @@ export class HeshevChat extends EventEmitter {
             onClose: this.close.bind(this),
             showClose: true,
             isEmbedded: false,
+            currentFollowUpQuestions: state.currentFollowUpQuestions,
           }),
         })
       );
@@ -293,6 +341,7 @@ export class HeshevChat extends EventEmitter {
   }
 
   private handleSend(message: string): void {
+    this.stateManager.clearFollowUpQuestions();
     const messageId = this.stateManager.addUserMessage(message);
     this.wsClient.send({
       type: 'message',

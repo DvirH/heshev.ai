@@ -40,3 +40,4 @@ coverage/
 *.temp
 
 .claude
+vite.config.ts.timestamp-*

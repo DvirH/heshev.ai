@@ -146,6 +146,7 @@ export interface CompleteMessage {
     content: string;
     tokenUsage: TokenUsage;
     metadata?: Record<string, unknown>;
+    followUpQuestions?: string[];
   };
 }
 

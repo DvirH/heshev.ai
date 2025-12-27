@@ -15,6 +15,7 @@ interface ChatContainerProps {
   onClose?: () => void;
   showClose?: boolean;
   isEmbedded?: boolean;
+  currentFollowUpQuestions?: string[];
 }
 
 export function ChatContainer({
@@ -29,6 +30,7 @@ export function ChatContainer({
   onClose,
   showClose = false,
   isEmbedded = true,
+  currentFollowUpQuestions,
 }: ChatContainerProps) {
   const themeClass = theme === 'dark'
     ? 'heshev-chat--dark'
@@ -65,7 +67,14 @@ export function ChatContainer({
         </div>
       )}
 
-      <MessageList messages={messages} serverStatus={serverStatus} texts={texts} />
+      <MessageList
+        messages={messages}
+        serverStatus={serverStatus}
+        texts={texts}
+        currentFollowUpQuestions={currentFollowUpQuestions}
+        onFollowUpClick={onSend}
+        canInteract={canSend}
+      />
 
       <InputArea
         onSend={onSend}

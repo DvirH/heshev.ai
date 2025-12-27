@@ -1,5 +1,10 @@
 import { logger } from '../utils/logger.ts';
 import type { Session } from '../types/session.ts';
+import {
+  shouldGenerateQuestions,
+  getQuestionCount,
+  buildFollowUpInstruction,
+} from '../llm/followUpQuestions.ts';
 
 // Default Hebrew system instructions for accountant assistant
 const DEFAULT_SYSTEM_INSTRUCTIONS = `אתה רואה חשבון מקצועי.
@@ -125,6 +130,12 @@ export function buildSessionSystemMessage(session: Session): string {
   // 4. Add metadata if exists
   if (session.metadata && Object.keys(session.metadata).length > 0) {
     parts.push(`\n\n--- מידע נוסף ---\n${JSON.stringify(session.metadata, null, 2)}`);
+  }
+
+  // 5. Add follow-up questions instruction if enabled
+  if (shouldGenerateQuestions(session)) {
+    const count = getQuestionCount(session);
+    parts.push('\n\n' + buildFollowUpInstruction(count));
   }
 
   const fullMessage = parts.join('');

@@ -93,13 +93,19 @@ export class StateManager extends EventEmitter {
     }
   }
 
-  completeStreamingMessage(content: string, tokenUsage: TokenUsage): void {
-    if (!this.streamingMessageId) return;
+  completeStreamingMessage(content: string, tokenUsage: TokenUsage, followUpQuestions?: string[]): void {
+    // If no streaming message exists, create one first
+    // (happens when follow-up questions are enabled and streaming is skipped)
+    if (!this.streamingMessageId) {
+      const messageId = generateId();
+      this.startAssistantMessage(messageId);
+    }
 
     const message = this.state.messages.find(m => m.id === this.streamingMessageId);
     if (message) {
       message.content = content;
       message.isStreaming = false;
+      message.followUpQuestions = followUpQuestions;
       this.emit('messageUpdated', message);
     }
 
@@ -108,7 +114,15 @@ export class StateManager extends EventEmitter {
     this.state.tokenUsage.completion += tokenUsage.completion;
     this.state.tokenUsage.total += tokenUsage.total;
 
+    // Update current follow-up questions
+    this.state.currentFollowUpQuestions = followUpQuestions;
+
     this.streamingMessageId = null;
+    this.emit('stateChange', this.getState());
+  }
+
+  clearFollowUpQuestions(): void {
+    this.state.currentFollowUpQuestions = undefined;
     this.emit('stateChange', this.getState());
   }
 

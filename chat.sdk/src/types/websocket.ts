@@ -124,6 +124,7 @@ export interface CompleteMessage {
       total: number;
     };
     metadata?: Record<string, unknown>;
+    followUpQuestions?: string[];
   };
 }
 
