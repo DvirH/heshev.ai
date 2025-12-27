@@ -42,6 +42,8 @@ export interface HeshevChatConfig {
     statusError?: string;
     processing?: string;
     closeButton?: string;
+    userLabel?: string;
+    assistantLabel?: string;
   };
 
   // Floating mode options

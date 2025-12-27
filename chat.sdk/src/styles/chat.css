@@ -26,6 +26,12 @@
   flex-shrink: 0;
 }
 
+.heshev-chat__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--heshev-spacing-sm);
+}
+
 .heshev-chat__header-title {
   font-size: var(--heshev-font-size-lg);
   font-weight: 600;
@@ -44,6 +50,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: none;
   border: none;
   border-radius: var(--heshev-border-radius-sm);
   color: var(--heshev-text-secondary);
@@ -256,12 +263,17 @@
   flex-shrink: 0;
 }
 
+.heshev-chat__send-btn svg {
+  transform: scaleX(1) rotate(-135deg);
+}
+
 .heshev-chat__send-btn:hover:not(:disabled) {
   background-color: var(--heshev-primary-hover);
 }
 
 .heshev-chat__send-btn:disabled {
-  background-color: var(--heshev-border);
+  background-color: var(--heshev-primary);
+  opacity: 0.5;
 }
 
 /* Floating button */
@@ -359,7 +371,7 @@
 }
 
 .heshev-chat--rtl .heshev-chat__input-area {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .heshev-chat--rtl .heshev-chat__header-actions {
@@ -393,7 +405,7 @@
   background-color: var(--heshev-follow-up-btn);
   color: var(--heshev-follow-up-btn-text);
   border: 1px solid var(--heshev-follow-up-btn-border);
-  border-radius: var(--heshev-border-radius);
+  border-radius: var(--heshev-border-radius) !important;
   padding: var(--heshev-spacing-sm) var(--heshev-spacing-md);
   text-align: end;
   cursor: pointer;

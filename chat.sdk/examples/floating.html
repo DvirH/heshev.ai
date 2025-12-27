@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +33,7 @@
       background: white;
       padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
     }
 
@@ -68,6 +69,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Heshev Chat - Floating Mode Demo</h1>
@@ -91,15 +93,15 @@
       </p>
 
       <div class="code-block">
-const chat = new HeshevChat({
-  websocketUrl: 'ws://localhost:3001/ws',
-  mode: 'floating',
-  floatingPosition: 'bottom-right',
-  theme: 'light',
-  onReady: () => console.log('Chat ready!')
-});
+        const chat = new HeshevChat({
+        websocketUrl: 'ws://172.25.119.147:3001/ws',
+        mode: 'floating',
+        floatingPosition: 'bottom-right',
+        theme: 'light',
+        onReady: () => console.log('Chat ready!')
+        });
 
-chat.init();
+        chat.init();
       </div>
 
       <div class="info-box">
@@ -153,28 +155,46 @@ chat.init();
     async function initChat() {
       try {
         chat = new HeshevChat({
-          websocketUrl: 'ws://localhost:3001/ws',
+          websocketUrl: 'ws://172.25.119.147:3001/ws',
           mode: 'floating',
           floatingPosition: 'bottom-right',
+          rtl: true,
           theme: 'light',
+          texts: {
+            title: 'צ\'אט',
+            placeholder: 'הקלד הודעה...',
+            placeholderConnecting: 'מתחבר...',
+            placeholderLoading: 'טוען...',
+            emptyStateTitle: 'אין הודעות עדיין',
+            emptyStateSubtitle: 'התחל שיחה!',
+            statusConnected: 'מחובר',
+            statusConnecting: 'מתחבר...',
+            statusDisconnected: 'מנותק',
+            statusError: 'שגיאה',
+            processing: 'מעבד...',
+            closeButton: 'סגור צ\'אט',
+            userLabel: 'דביר',
+            assistantLabel: 'חשב AI',
+          },
           onReady: () => {
-            console.log('Chat is ready!');
-          },
-          onOpen: () => {
-            console.log('Chat opened');
-          },
-          onClose: () => {
-            console.log('Chat closed');
+            updateStatus('מוכן');
           },
           onStatusChange: (status) => {
-            console.log('Connection status:', status);
+            const statusMap = {
+              'connected': 'מחובר',
+              'connecting': 'מתחבר...',
+              'disconnected': 'מנותק',
+              'error': 'שגיאה'
+            };
+            updateStatus(`חיבור: ${statusMap[status] || status}`);
           },
           onMessage: (message) => {
-            console.log('Message received:', message);
+            console.log('הודעה חדשה:', message);
+            updateTokenUsage();
           },
           onError: (error) => {
-            console.error('Chat error:', error);
-          },
+            updateStatus(`שגיאה: ${error.message}`);
+          }
         });
 
         await chat.init();
@@ -197,4 +217,5 @@ chat.init();
     window.chat = chat;
   </script>
 </body>
+
 </html>

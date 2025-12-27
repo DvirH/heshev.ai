@@ -22,7 +22,7 @@
   font-family: inherit;
   font-size: inherit;
   cursor: pointer;
-  background: none;
+  border-radius: 50%;
 }
 
 .heshev-chat button:disabled {
