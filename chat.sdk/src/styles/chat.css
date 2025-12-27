@@ -462,12 +462,6 @@
   text-align: end;
   cursor: pointer;
   font-size: var(--heshev-font-size-sm);
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.heshev-chat__follow-up-btn:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
 }
 
 .heshev-chat__follow-up-btn:disabled {
