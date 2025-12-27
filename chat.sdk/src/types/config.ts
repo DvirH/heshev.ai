@@ -44,6 +44,7 @@ export interface HeshevChatConfig {
     closeButton?: string;
     userLabel?: string;
     assistantLabel?: string;
+    disclaimer?: string;
   };
 
   // Floating mode options
@@ -116,4 +117,5 @@ export interface UITexts {
   followUpPrompt: string;
   userLabel: string;
   assistantLabel: string;
+  disclaimer?: string;
 }

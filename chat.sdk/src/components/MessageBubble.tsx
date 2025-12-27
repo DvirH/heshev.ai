@@ -61,6 +61,11 @@ export function MessageBubble({ message, texts }: MessageBubbleProps) {
           displayedText || (message.isStreaming ? '' : message.content)
         )}
       </div>
+      {message.role === 'assistant' && texts.disclaimer && (
+        <div className="heshev-chat__bubble-disclaimer">
+          {texts.disclaimer}
+        </div>
+      )}
     </div>
   );
 }

@@ -229,6 +229,15 @@
   color: var(--heshev-bubble-assistant-meta);
 }
 
+/* Disclaimer */
+.heshev-chat__bubble-disclaimer {
+  margin-top: var(--heshev-spacing-sm);
+  font-size: var(--heshev-font-size-xs);
+  color: var(--heshev-text-muted);
+  border-top: 1px solid var(--heshev-border);
+  padding-top: var(--heshev-spacing-xs);
+}
+
 /* Typing indicator */
 .heshev-chat__typing {
   align-self: flex-start;
