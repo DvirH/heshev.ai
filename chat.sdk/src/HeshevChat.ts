@@ -100,6 +100,7 @@ export class HeshevChat extends EventEmitter {
       autoConnect: config.autoConnect ?? true,
       reconnectAttempts: config.reconnectAttempts ?? 5,
       reconnectDelay: config.reconnectDelay ?? 3000,
+      showFollowUpQuestions: config.showFollowUpQuestions ?? true,
       onReady: config.onReady ?? (() => {}),
       onMessage: config.onMessage ?? (() => {}),
       onError: config.onError ?? (() => {}),
@@ -225,6 +226,17 @@ export class HeshevChat extends EventEmitter {
     // Auto-connect if enabled
     if (this.config.autoConnect) {
       await this.connect();
+
+      // Disable follow-up questions on server if configured
+      if (!this.config.showFollowUpQuestions) {
+        this.wsClient.send({
+          type: 'metadata',
+          payload: {
+            data: { disableFollowUpQuestions: true },
+            merge: true,
+          },
+        });
+      }
     }
   }
 
@@ -300,6 +312,7 @@ export class HeshevChat extends EventEmitter {
           onSend: this.handleSend.bind(this),
           isEmbedded: true,
           currentFollowUpQuestions: state.currentFollowUpQuestions,
+          showFollowUpQuestions: this.config.showFollowUpQuestions,
         })
       );
     } else {
@@ -334,6 +347,7 @@ export class HeshevChat extends EventEmitter {
             showClose: true,
             isEmbedded: false,
             currentFollowUpQuestions: state.currentFollowUpQuestions,
+            showFollowUpQuestions: this.config.showFollowUpQuestions,
           }),
         })
       );

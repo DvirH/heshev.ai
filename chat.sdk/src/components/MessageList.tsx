@@ -10,6 +10,7 @@ interface MessageListProps {
   currentFollowUpQuestions?: string[];
   onFollowUpClick?: (question: string) => void;
   canInteract?: boolean;
+  showFollowUpQuestions?: boolean;
 }
 
 function TypingIndicator() {
@@ -39,6 +40,7 @@ export function MessageList({
   currentFollowUpQuestions,
   onFollowUpClick,
   canInteract = true,
+  showFollowUpQuestions = true,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,7 @@ export function MessageList({
   const isEmpty = messages.length === 0;
   const showTyping = serverStatus === 'typing' && !messages.some(m => m.isStreaming);
   const showFollowUp =
+    showFollowUpQuestions &&
     currentFollowUpQuestions &&
     currentFollowUpQuestions.length > 0 &&
     serverStatus === 'idle' &&

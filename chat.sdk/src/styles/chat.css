@@ -316,7 +316,11 @@
 }
 
 .heshev-chat__send-btn svg {
-  transform: scaleX(1) rotate(-135deg);
+  transform: scaleX(1) rotate(45deg);
+}
+
+.heshev-chat--rtl .heshev-chat__send-btn svg {
+  transform: scaleX(-1) rotate(45deg);
 }
 
 .heshev-chat__send-btn:hover:not(:disabled) {

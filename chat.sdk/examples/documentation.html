@@ -177,6 +177,15 @@
             </label>
           </div>
 
+          <!-- Follow-up Questions Toggle -->
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">Follow-up Questions</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="followup-toggle" checked class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+            </label>
+          </div>
+
           <!-- Colors Section -->
           <div class="border border-gray-200 rounded-lg">
             <button onclick="toggleSection('colors')" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50">
@@ -493,6 +502,7 @@
         mode: currentMode,
         theme: document.querySelector('input[name="theme"]:checked').value,
         rtl: document.getElementById('rtl-toggle').checked,
+        showFollowUpQuestions: document.getElementById('followup-toggle').checked,
       };
 
       // Add container for embedded mode
@@ -688,6 +698,10 @@
 
       if (config.rtl) {
         code += `  rtl: true,\n`;
+      }
+
+      if (!config.showFollowUpQuestions) {
+        code += `  showFollowUpQuestions: false,\n`;
       }
 
       if (config.mode === 'floating') {

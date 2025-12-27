@@ -61,6 +61,7 @@ export interface HeshevChatConfig {
   autoConnect?: boolean;
   reconnectAttempts?: number;
   reconnectDelay?: number;
+  showFollowUpQuestions?: boolean;  // Show follow-up question suggestions (default: true)
 
   // Callbacks
   onReady?: () => void;
