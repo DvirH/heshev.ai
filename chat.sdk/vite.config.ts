@@ -27,6 +27,7 @@ export default defineConfig({
       // React is bundled for UMD (script tag usage)
       // but external for ESM (npm usage)
       output: {
+        exports: 'named',
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',

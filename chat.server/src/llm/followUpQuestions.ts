@@ -84,12 +84,7 @@ export function parseResponseWithQuestions(rawContent: string): ParsedResponse {
 /**
  * Checks if follow-up questions should be generated for this session
  */
-export function shouldGenerateQuestions(session: Session): boolean {
-  // Check session-level override
-  if (session.metadata?.disableFollowUpQuestions === true) {
-    return false;
-  }
-
+export function shouldGenerateQuestions(_session: Session): boolean {
   // Check global config
   return config.followUpQuestionsEnabled;
 }
@@ -97,11 +92,6 @@ export function shouldGenerateQuestions(session: Session): boolean {
 /**
  * Gets the number of questions to generate for this session
  */
-export function getQuestionCount(session: Session): number {
-  // Allow session-level override
-  const sessionCount = session.metadata?.followUpQuestionsCount;
-  if (typeof sessionCount === 'number' && sessionCount >= 1 && sessionCount <= 5) {
-    return sessionCount;
-  }
+export function getQuestionCount(_session: Session): number {
   return config.followUpQuestionsCount;
 }

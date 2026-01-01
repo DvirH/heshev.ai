@@ -56,15 +56,6 @@ export class WebSocketClient extends EventEmitter {
           this.currentReconnectAttempt = 0;
           this.setStatus('connected');
           this.startPing();
-
-          // Send init message
-          this.send({
-            type: 'init',
-            payload: {
-              clientId: this.sessionId ?? undefined,
-            },
-          });
-
           this.emit('open');
           resolve();
         };

@@ -4,7 +4,7 @@ export type Theme = 'light' | 'dark' | 'auto';
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface HeshevChatConfig {
-  // Required
+  // Required - WebSocket URL (obtained from your backend)
   websocketUrl: string;
 
   // Display mode
@@ -51,11 +51,6 @@ export interface HeshevChatConfig {
   floatingPosition?: FloatingPosition;
   floatingButtonText?: string;
   floatingButtonIcon?: string;
-
-  // Context options (can be set at init OR loaded later via methods)
-  systemInstructions?: string;  // Custom system prompt
-  fileContent?: string;         // Initial file content
-  metadata?: Record<string, unknown>;  // Additional JSON data
 
   // Behavior
   autoConnect?: boolean;

@@ -1,20 +1,4 @@
 // Client -> Server messages
-export interface InitMessage {
-  type: 'init';
-  payload: {
-    clientId?: string;
-    metadata?: Record<string, unknown>;
-  };
-}
-
-export interface ContextMessage {
-  type: 'context';
-  payload: {
-    data: Record<string, unknown>;
-    contextId?: string;
-  };
-}
-
 export interface UserMessage {
   type: 'message';
   payload: {
@@ -43,43 +27,12 @@ export interface ResetMessage {
   type: 'reset';
 }
 
-// File content message
-export interface FileMessage {
-  type: 'file';
-  payload: {
-    content: string;
-    filename?: string;
-  };
-}
-
-// Metadata message
-export interface MetadataMessage {
-  type: 'metadata';
-  payload: {
-    data: Record<string, unknown> | string;
-    merge?: boolean;  // true = merge with existing, false = replace
-  };
-}
-
-// System instructions message
-export interface InstructionsMessage {
-  type: 'instructions';
-  payload: {
-    content: string;
-  };
-}
-
 export type ClientMessage =
-  | InitMessage
-  | ContextMessage
   | UserMessage
   | PingMessage
   | AbortMessage
   | NewConversationMessage
-  | ResetMessage
-  | FileMessage
-  | MetadataMessage
-  | InstructionsMessage;
+  | ResetMessage;
 
 // Server -> Client messages
 export interface ConnectedMessage {

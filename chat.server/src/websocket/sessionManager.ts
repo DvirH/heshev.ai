@@ -26,7 +26,7 @@ export class SessionManager {
 
     const session: Session = {
       id: sessionId,
-      ws: options.ws,
+      ws: options.ws ?? null,
       context: null,
       conversationHistory: [],
       createdAt: new Date(),
@@ -42,6 +42,34 @@ export class SessionManager {
     this.sessions.set(sessionId, session);
     logger.info('Session created', { sessionId });
     return session;
+  }
+
+  createForApi(options: { clientId?: string; metadata?: Record<string, unknown> } = {}): Session {
+    return this.create({
+      clientId: options.clientId,
+      metadata: options.metadata,
+    });
+  }
+
+  exists(sessionId: string): boolean {
+    return this.sessions.has(sessionId);
+  }
+
+  attachWebSocket(sessionId: string, ws: WebSocket): boolean {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return false;
+    }
+
+    // If session already has a WebSocket, close the old one
+    if (session.ws && session.ws.readyState === ws.OPEN) {
+      session.ws.close(1000, 'Replaced by new connection');
+    }
+
+    session.ws = ws;
+    session.lastActivity = new Date();
+    logger.info('WebSocket attached to session', { sessionId });
+    return true;
   }
 
   get(sessionId: string): Session | undefined {
@@ -82,29 +110,6 @@ export class SessionManager {
       session.context = context;
       session.lastActivity = new Date();
       logger.debug('Context updated', { sessionId });
-    }
-  }
-
-  updateFileContent(sessionId: string, content: string, filename?: string): void {
-    const session = this.sessions.get(sessionId);
-    if (session) {
-      session.fileContent = content;
-      session.fileFilename = filename;
-      session.lastActivity = new Date();
-      logger.debug('File content updated', { sessionId, filename });
-    }
-  }
-
-  updateMetadata(sessionId: string, data: Record<string, unknown>, merge = false): void {
-    const session = this.sessions.get(sessionId);
-    if (session) {
-      if (merge && session.metadata) {
-        session.metadata = { ...session.metadata, ...data };
-      } else {
-        session.metadata = data;
-      }
-      session.lastActivity = new Date();
-      logger.debug('Metadata updated', { sessionId, merge });
     }
   }
 
@@ -149,9 +154,6 @@ export class SessionManager {
       session.context = null;
       session.conversationHistory = [];
       session.totalTokenUsage = { prompt: 0, completion: 0, total: 0 };
-      session.fileContent = undefined;
-      session.fileFilename = undefined;
-      session.metadata = undefined;
       session.systemInstructions = undefined;
       session.lastActivity = new Date();
       logger.debug('Session reset', { sessionId });

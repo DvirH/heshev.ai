@@ -23,6 +23,12 @@ export function streamChatResponse(params: StreamChatParams): void {
   const { session, userMessage, messageId } = params;
   const { ws } = session;
 
+  // Ensure WebSocket is connected
+  if (!ws) {
+    logger.error('Cannot stream: WebSocket not connected', { sessionId: session.id });
+    return;
+  }
+
   // Check if follow-up questions are enabled (affects streaming behavior)
   const generateFollowUp = shouldGenerateQuestions(session);
 

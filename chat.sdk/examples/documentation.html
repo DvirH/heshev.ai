@@ -127,11 +127,34 @@
         </div>
 
         <div class="p-4 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
-          <!-- WebSocket URL -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">WebSocket URL</label>
-            <input type="text" id="ws-url" value="ws://172.25.119.147:3001/ws"
-              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+          <!-- Backend Configuration (simulates your server) -->
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p class="text-xs text-amber-700 mb-2">
+              <strong>Backend Simulation:</strong> In production, your backend server holds these credentials and creates sessions for browser clients.
+            </p>
+
+            <!-- API URL -->
+            <div class="mb-2">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Chat Server URL</label>
+              <input type="text" id="api-url" value="http://localhost:3001"
+                class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            </div>
+
+            <!-- API Key -->
+            <div class="mb-2">
+              <label class="block text-xs font-medium text-gray-700 mb-1">API Key</label>
+              <input type="text" id="api-key" value=""
+                class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="Your API key">
+            </div>
+
+            <!-- API Secret -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-1">API Secret</label>
+              <input type="password" id="api-secret" value=""
+                class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="Your API secret">
+            </div>
           </div>
 
           <!-- Mode Selection -->
@@ -277,23 +300,6 @@
             </button>
             <div id="context-content" class="section-content">
               <div class="px-4 pb-4 space-y-4">
-                <!-- File Upload -->
-                <div>
-                  <label class="block text-xs text-gray-600 mb-2">File Attachment</label>
-                  <div class="relative">
-                    <input type="file" id="context-file" accept=".txt,.json,.csv,.xml,.md" class="hidden">
-                    <label for="context-file" class="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-colors">
-                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                      </svg>
-                      <span class="text-xs text-gray-500" id="file-label">Choose file...</span>
-                    </label>
-                  </div>
-                  <button onclick="loadContextFile()" id="load-file-btn" disabled class="mt-2 w-full px-3 py-1.5 text-xs bg-gray-100 text-gray-400 rounded cursor-not-allowed">
-                    Load File
-                  </button>
-                </div>
-
                 <!-- System Instructions -->
                 <div>
                   <label class="block text-xs text-gray-600 mb-2">System Instructions</label>
@@ -304,19 +310,14 @@
                   </button>
                 </div>
 
-                <!-- Metadata -->
+                <!-- Context Data -->
                 <div>
-                  <label class="block text-xs text-gray-600 mb-2">Metadata (JSON)</label>
-                  <textarea id="context-metadata" rows="4" placeholder='{"key": "value"}'
+                  <label class="block text-xs text-gray-600 mb-2">Context Data (JSON)</label>
+                  <textarea id="context-data" rows="4" placeholder='{"documents": [{"title": "Doc 1", "content": "..."}]}'
                     class="w-full px-2 py-1.5 text-sm font-mono border border-gray-300 rounded resize-y"></textarea>
-                  <div class="flex gap-2 mt-2">
-                    <button onclick="loadMetadata(false)" class="flex-1 px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
-                      Replace
-                    </button>
-                    <button onclick="loadMetadata(true)" class="flex-1 px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                      Merge
-                    </button>
-                  </div>
+                  <button onclick="loadContextData()" class="mt-2 w-full px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
+                    Load Context
+                  </button>
                 </div>
               </div>
             </div>
@@ -447,8 +448,6 @@
     // State
     let chat = null;
     let currentMode = 'embedded';
-    let fileContent = null;
-    let fileName = null;
 
     // Pricing (Gemini 2.5 Pro)
     const PRICING = {
@@ -456,10 +455,16 @@
       outputPer1M: 10.00
     };
 
-    // Get WebSocket URL from query param or input
+    // Get API URL/Key/Secret from query params or input
     const params = new URLSearchParams(window.location.search);
-    if (params.get('ws')) {
-      document.getElementById('ws-url').value = params.get('ws');
+    if (params.get('api')) {
+      document.getElementById('api-url').value = params.get('api');
+    }
+    if (params.get('key')) {
+      document.getElementById('api-key').value = params.get('key');
+    }
+    if (params.get('secret')) {
+      document.getElementById('api-secret').value = params.get('secret');
     }
 
     // Initialize on page load
@@ -476,29 +481,21 @@
         el.addEventListener('change', updateCodeOutput);
         el.addEventListener('input', updateCodeOutput);
       });
-
-      // File input handler
-      document.getElementById('context-file').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          fileContent = event.target.result;
-          fileName = file.name;
-          document.getElementById('file-label').textContent = file.name;
-          document.getElementById('load-file-btn').disabled = false;
-          document.getElementById('load-file-btn').classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
-          document.getElementById('load-file-btn').classList.add('bg-primary-600', 'text-white', 'hover:bg-primary-700', 'cursor-pointer');
-        };
-        reader.readAsText(file);
-      });
     }
 
-    // Get current configuration
-    function getConfig() {
+    // Get backend configuration (API key/secret for session creation)
+    function getBackendConfig() {
+      return {
+        apiUrl: document.getElementById('api-url').value.replace(/\/$/, ''),
+        apiKey: document.getElementById('api-key').value,
+        apiSecret: document.getElementById('api-secret').value,
+      };
+    }
+
+    // Get SDK configuration (used after session is created)
+    function getSdkConfig(websocketUrl) {
       const config = {
-        websocketUrl: document.getElementById('ws-url').value,
+        websocketUrl,
         mode: currentMode,
         theme: document.querySelector('input[name="theme"]:checked').value,
         rtl: document.getElementById('rtl-toggle').checked,
@@ -566,10 +563,69 @@
       return config;
     }
 
+    // Create session via backend API (simulates what your server does)
+    async function createSession(backendConfig) {
+      const response = await fetch(`${backendConfig.apiUrl}/api/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': backendConfig.apiKey,
+          'x-api-secret': backendConfig.apiSecret,
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    // Set instructions via backend API
+    async function setInstructionsViaApi(backendConfig, sessionId, content) {
+      const response = await fetch(`${backendConfig.apiUrl}/api/sessions/${sessionId}/instructions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': backendConfig.apiKey,
+          'x-api-secret': backendConfig.apiSecret,
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+    }
+
+    // Load context via backend API
+    async function loadContextViaApi(backendConfig, sessionId, data) {
+      const response = await fetch(`${backendConfig.apiUrl}/api/sessions/${sessionId}/context`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': backendConfig.apiKey,
+          'x-api-secret': backendConfig.apiSecret,
+        },
+        body: JSON.stringify({ data }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+    }
+
+    // Store current session info
+    let currentSession = null;
+
     // Initialize chat
     async function initChat() {
       try {
-        updateStatus('connecting', 'Connecting...');
+        updateStatus('connecting', 'Creating session...');
 
         if (chat) {
           chat.destroy();
@@ -585,7 +641,35 @@
           document.getElementById('preview-container').innerHTML = '<div class="flex items-center justify-center h-full text-white text-lg">Floating chat widget active. Click the button to open.</div>';
         }
 
-        const config = getConfig();
+        const backendConfig = getBackendConfig();
+
+        // Step 1: Create session via backend API
+        updateStatus('connecting', 'Creating session...');
+        const session = await createSession(backendConfig);
+        currentSession = { ...session, backendConfig };
+
+        // Step 2: Set instructions if provided
+        const instructions = document.getElementById('context-instructions').value.trim();
+        if (instructions) {
+          updateStatus('connecting', 'Setting instructions...');
+          await setInstructionsViaApi(backendConfig, session.sessionId, instructions);
+        }
+
+        // Step 3: Load context if provided
+        const contextStr = document.getElementById('context-data').value.trim();
+        if (contextStr) {
+          try {
+            const contextData = JSON.parse(contextStr);
+            updateStatus('connecting', 'Loading context...');
+            await loadContextViaApi(backendConfig, session.sessionId, contextData);
+          } catch (e) {
+            console.warn('Invalid context JSON, skipping');
+          }
+        }
+
+        // Step 4: Initialize SDK with websocketUrl only
+        updateStatus('connecting', 'Connecting...');
+        const config = getSdkConfig(session.websocketUrl);
 
         // Add callbacks
         config.onReady = () => {
@@ -680,12 +764,79 @@
 
     // Update code output
     function updateCodeOutput() {
-      const config = getConfig();
+      const backendConfig = getBackendConfig();
+      const config = getSdkConfig('wss://your-server.com/ws/{sessionId}');
 
-      // Build code string
-      let code = `// Initialize Heshev Chat SDK\n`;
+      // Build code string showing both backend and frontend code
+      let code = `// ============================================\n`;
+      code += `// BACKEND CODE (Node.js/Express example)\n`;
+      code += `// Keep API credentials secret on your server\n`;
+      code += `// ============================================\n\n`;
+
+      code += `// Endpoint that your frontend calls to get a chat session\n`;
+      code += `app.post('/api/chat-session', async (req, res) => {\n`;
+      code += `  // Create session with chat server\n`;
+      code += `  const response = await fetch('${backendConfig.apiUrl}/api/sessions', {\n`;
+      code += `    method: 'POST',\n`;
+      code += `    headers: {\n`;
+      code += `      'Content-Type': 'application/json',\n`;
+      code += `      'x-api-key': process.env.CHAT_API_KEY,\n`;
+      code += `      'x-api-secret': process.env.CHAT_API_SECRET,\n`;
+      code += `    },\n`;
+      code += `  });\n`;
+      code += `  const session = await response.json();\n\n`;
+
+      // Add context/instructions setup if configured
+      const instructions = document.getElementById('context-instructions').value.trim();
+      if (instructions) {
+        code += `  // Set system instructions\n`;
+        code += `  await fetch(\`${backendConfig.apiUrl}/api/sessions/\${session.sessionId}/instructions\`, {\n`;
+        code += `    method: 'POST',\n`;
+        code += `    headers: {\n`;
+        code += `      'Content-Type': 'application/json',\n`;
+        code += `      'x-api-key': process.env.CHAT_API_KEY,\n`;
+        code += `      'x-api-secret': process.env.CHAT_API_SECRET,\n`;
+        code += `    },\n`;
+        code += `    body: JSON.stringify({ content: \`${instructions}\` }),\n`;
+        code += `  });\n\n`;
+      }
+
+      const contextData = document.getElementById('context-data').value.trim();
+      if (contextData) {
+        try {
+          JSON.parse(contextData);
+          code += `  // Load context data\n`;
+          code += `  await fetch(\`${backendConfig.apiUrl}/api/sessions/\${session.sessionId}/context\`, {\n`;
+          code += `    method: 'POST',\n`;
+          code += `    headers: {\n`;
+          code += `      'Content-Type': 'application/json',\n`;
+          code += `      'x-api-key': process.env.CHAT_API_KEY,\n`;
+          code += `      'x-api-secret': process.env.CHAT_API_SECRET,\n`;
+          code += `    },\n`;
+          code += `    body: JSON.stringify({ data: ${contextData} }),\n`;
+          code += `  });\n\n`;
+        } catch (e) {
+          // Invalid JSON, skip
+        }
+      }
+
+      code += `  // Return websocketUrl to frontend (no secrets!)\n`;
+      code += `  res.json({ websocketUrl: session.websocketUrl });\n`;
+      code += `});\n\n`;
+
+      code += `// ============================================\n`;
+      code += `// FRONTEND CODE (Browser)\n`;
+      code += `// Only receives the websocketUrl, no secrets\n`;
+      code += `// ============================================\n\n`;
+
+      code += `// 1. Get websocketUrl from your backend\n`;
+      code += `const { websocketUrl } = await fetch('/api/chat-session', {\n`;
+      code += `  method: 'POST',\n`;
+      code += `}).then(r => r.json());\n\n`;
+
+      code += `// 2. Initialize chat with websocketUrl only\n`;
       code += `const chat = new HeshevChat({\n`;
-      code += `  websocketUrl: '${config.websocketUrl}',\n`;
+      code += `  websocketUrl,\n`;
       code += `  mode: '${config.mode}',\n`;
 
       if (config.mode === 'embedded') {
@@ -729,37 +880,9 @@
         code += `  },\n`;
       }
 
-      code += `  onReady: () => {\n`;
-      code += `    console.log('Chat is ready');\n`;
-      code += `  },\n`;
-      code += `  onMessage: (message) => {\n`;
-      code += `    console.log('New message:', message);\n`;
-      code += `  },\n`;
-      code += `  onError: (error) => {\n`;
-      code += `    console.error('Chat error:', error);\n`;
-      code += `  },\n`;
       code += `});\n\n`;
-      code += `// Initialize the chat\n`;
+      code += `// 3. Initialize and connect\n`;
       code += `await chat.init();\n`;
-
-      // Add context loading examples if configured
-      const instructions = document.getElementById('context-instructions').value.trim();
-      const metadata = document.getElementById('context-metadata').value.trim();
-
-      if (instructions) {
-        code += `\n// Set system instructions\n`;
-        code += `await chat.setSystemInstructions(\`${instructions}\`);\n`;
-      }
-
-      if (metadata) {
-        try {
-          JSON.parse(metadata);
-          code += `\n// Load metadata\n`;
-          code += `await chat.loadMetadata(${metadata});\n`;
-        } catch (e) {
-          // Invalid JSON, skip
-        }
-      }
 
       document.getElementById('code-output').textContent = code;
       Prism.highlightElement(document.getElementById('code-output'));
@@ -811,26 +934,19 @@
       document.getElementById('cost-total').textContent = `$${totalCost.toFixed(4)}`;
     }
 
-    // Context loading
-    async function loadContextFile() {
-      if (!chat || !fileContent) return;
-      try {
-        await chat.loadFile(fileContent, fileName);
-        updateStatus('connected', 'File loaded');
-      } catch (error) {
-        updateStatus('error', `File load failed: ${error.message}`);
-      }
-    }
-
+    // Context loading (via backend API)
     async function loadInstructions() {
-      if (!chat) return;
+      if (!currentSession) {
+        alert('Please connect first');
+        return;
+      }
       const instructions = document.getElementById('context-instructions').value.trim();
       if (!instructions) {
         alert('Please enter system instructions');
         return;
       }
       try {
-        await chat.setSystemInstructions(instructions);
+        await setInstructionsViaApi(currentSession.backendConfig, currentSession.sessionId, instructions);
         updateStatus('connected', 'Instructions applied');
         updateCodeOutput();
       } catch (error) {
@@ -838,23 +954,26 @@
       }
     }
 
-    async function loadMetadata(merge) {
-      if (!chat) return;
-      const metadataStr = document.getElementById('context-metadata').value.trim();
-      if (!metadataStr) {
-        alert('Please enter metadata JSON');
+    async function loadContextData() {
+      if (!currentSession) {
+        alert('Please connect first');
+        return;
+      }
+      const contextStr = document.getElementById('context-data').value.trim();
+      if (!contextStr) {
+        alert('Please enter context JSON');
         return;
       }
       try {
-        const metadata = JSON.parse(metadataStr);
-        await chat.loadMetadata(metadata, merge);
-        updateStatus('connected', merge ? 'Metadata merged' : 'Metadata replaced');
+        const contextData = JSON.parse(contextStr);
+        await loadContextViaApi(currentSession.backendConfig, currentSession.sessionId, contextData);
+        updateStatus('connected', 'Context loaded');
         updateCodeOutput();
       } catch (error) {
         if (error instanceof SyntaxError) {
           alert('Invalid JSON');
         } else {
-          updateStatus('error', `Metadata failed: ${error.message}`);
+          updateStatus('error', `Context load failed: ${error.message}`);
         }
       }
     }

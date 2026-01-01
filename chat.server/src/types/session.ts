@@ -3,7 +3,7 @@ import type { ConversationMessage, TokenUsage } from './messages.ts';
 
 export interface Session {
   id: string;
-  ws: WebSocket;
+  ws: WebSocket | null;
   context: Record<string, unknown> | null;
   conversationHistory: ConversationMessage[];
   createdAt: Date;
@@ -11,15 +11,11 @@ export interface Session {
   clientMetadata?: Record<string, unknown>;
   totalTokenUsage: TokenUsage;
   activeStreamController?: AbortController;
-  // Context fields
-  fileContent?: string;
-  fileFilename?: string;
-  metadata?: Record<string, unknown>;
   systemInstructions?: string;
 }
 
 export interface SessionCreateOptions {
-  ws: WebSocket;
+  ws?: WebSocket;
   clientId?: string;
   metadata?: Record<string, unknown>;
 }

@@ -1,31 +1,10 @@
 // Client -> Server message types
 export type ClientMessageType =
-  | 'init'
-  | 'context'
   | 'message'
   | 'ping'
   | 'abort'
   | 'new_conversation'
-  | 'reset'
-  | 'file'
-  | 'metadata'
-  | 'instructions';
-
-export interface InitMessage {
-  type: 'init';
-  payload: {
-    clientId?: string;
-    metadata?: Record<string, unknown>;
-  };
-}
-
-export interface ContextMessage {
-  type: 'context';
-  payload: {
-    data: Record<string, unknown>;
-    contextId?: string;
-  };
-}
+  | 'reset';
 
 export interface ChatMessage {
   type: 'message';
@@ -55,40 +34,12 @@ export interface ResetMessage {
   type: 'reset';
 }
 
-export interface FileMessage {
-  type: 'file';
-  payload: {
-    content: string;
-    filename?: string;
-  };
-}
-
-export interface MetadataMessage {
-  type: 'metadata';
-  payload: {
-    data: Record<string, unknown> | string;
-    merge?: boolean;
-  };
-}
-
-export interface InstructionsMessage {
-  type: 'instructions';
-  payload: {
-    content: string;
-  };
-}
-
 export type ClientMessage =
-  | InitMessage
-  | ContextMessage
   | ChatMessage
   | PingMessage
   | AbortMessage
   | NewConversationMessage
-  | ResetMessage
-  | FileMessage
-  | MetadataMessage
-  | InstructionsMessage;
+  | ResetMessage;
 
 // Server -> Client message types
 export type ServerMessageType =

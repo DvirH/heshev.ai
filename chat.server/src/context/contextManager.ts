@@ -92,7 +92,7 @@ export function buildSystemMessage(context: ProcessedContext): string {
 }
 
 /**
- * Builds a full system message from session context including file content and metadata
+ * Builds a full system message from session context
  * This is the main function to use for building the system prompt
  */
 export function buildSessionSystemMessage(session: Session): string {
@@ -102,7 +102,7 @@ export function buildSessionSystemMessage(session: Session): string {
   const instructions = session.systemInstructions || DEFAULT_SYSTEM_INSTRUCTIONS;
   parts.push(instructions);
 
-  // 2. Process legacy context if exists (for backwards compatibility)
+  // 2. Process context if exists
   if (session.context) {
     const processed = processContext(session.context);
     if (processed.systemPrompt && !session.systemInstructions) {
@@ -119,20 +119,13 @@ export function buildSessionSystemMessage(session: Session): string {
         }
       });
     }
+    // Add context metadata if exists
+    if (processed.metadata && Object.keys(processed.metadata).length > 0) {
+      parts.push(`\n\n--- Additional Data ---\n${JSON.stringify(processed.metadata, null, 2)}`);
+    }
   }
 
-  // 3. Add file content if exists
-  if (session.fileContent) {
-    const filename = session.fileFilename ? ` (${session.fileFilename})` : '';
-    parts.push(`\n\n--- קובץ מצורף${filename} ---\n${session.fileContent}`);
-  }
-
-  // 4. Add metadata if exists
-  if (session.metadata && Object.keys(session.metadata).length > 0) {
-    parts.push(`\n\n--- מידע נוסף ---\n${JSON.stringify(session.metadata, null, 2)}`);
-  }
-
-  // 5. Add follow-up questions instruction if enabled
+  // 3. Add follow-up questions instruction if enabled
   if (shouldGenerateQuestions(session)) {
     const count = getQuestionCount(session);
     parts.push('\n\n' + buildFollowUpInstruction(count));
@@ -143,8 +136,7 @@ export function buildSessionSystemMessage(session: Session): string {
   logger.debug('Session system message built', {
     sessionId: session.id,
     hasCustomInstructions: !!session.systemInstructions,
-    hasFileContent: !!session.fileContent,
-    hasMetadata: !!session.metadata,
+    hasContext: !!session.context,
     messageLength: fullMessage.length,
   });
 

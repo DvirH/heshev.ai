@@ -61,10 +61,10 @@ const DEFAULT_TEXTS_EN: UITexts = {
 };
 
 export class HeshevChat extends EventEmitter {
-  private config: Required<Omit<HeshevChatConfig, 'container' | 'texts' | 'metadata' | 'systemInstructions' | 'fileContent' | 'colors'>> & { container?: string | HTMLElement };
+  private config: Required<Omit<HeshevChatConfig, 'container' | 'texts' | 'colors'>> & { container?: string | HTMLElement };
   private colors?: HeshevChatConfig['colors'];
   private texts: UITexts;
-  private wsClient: WebSocketClient;
+  private wsClient: WebSocketClient | null = null;
   private stateManager: StateManager;
   private root: Root | null = null;
   private containerElement: HTMLElement | null = null;
@@ -119,20 +119,13 @@ export class HeshevChat extends EventEmitter {
     // Store custom colors
     this.colors = config.colors;
 
-    // Initialize core modules
-    this.wsClient = new WebSocketClient({
-      url: config.websocketUrl,
-      reconnectAttempts: this.config.reconnectAttempts,
-      reconnectDelay: this.config.reconnectDelay,
-    });
-
+    // StateManager will be initialized
     this.stateManager = new StateManager();
-
-    // Setup WebSocket event handlers
-    this.setupWebSocketHandlers();
   }
 
   private setupWebSocketHandlers(): void {
+    if (!this.wsClient) return;
+
     this.wsClient.on('statusChange', (status: ConnectionStatus) => {
       this.stateManager.setConnected(status === 'connected');
       this.config.onStatusChange(status);
@@ -142,9 +135,6 @@ export class HeshevChat extends EventEmitter {
 
     this.wsClient.on('connected', () => {
       this.stateManager.setConnected(true);
-    });
-
-    this.wsClient.on('ready', () => {
       this.stateManager.setReady(true);
       this.config.onReady();
       this.emit('ready');
@@ -226,17 +216,6 @@ export class HeshevChat extends EventEmitter {
     // Auto-connect if enabled
     if (this.config.autoConnect) {
       await this.connect();
-
-      // Disable follow-up questions on server if configured
-      if (!this.config.showFollowUpQuestions) {
-        this.wsClient.send({
-          type: 'metadata',
-          payload: {
-            data: { disableFollowUpQuestions: true },
-            merge: true,
-          },
-        });
-      }
     }
   }
 
@@ -298,12 +277,13 @@ export class HeshevChat extends EventEmitter {
     if (!this.root) return;
 
     const state = this.stateManager.getState();
+    const status = this.wsClient?.status ?? 'disconnected';
 
     if (this.config.mode === 'embedded') {
       this.root.render(
         React.createElement(ChatContainer, {
           messages: state.messages,
-          status: this.wsClient.status,
+          status,
           serverStatus: state.serverStatus,
           isReady: state.isReady,
           theme: this.config.theme,
@@ -336,7 +316,7 @@ export class HeshevChat extends EventEmitter {
           isOpen: this.isOpen,
           children: React.createElement(ChatContainer, {
             messages: state.messages,
-            status: this.wsClient.status,
+            status,
             serverStatus: state.serverStatus,
             isReady: state.isReady,
             theme: this.config.theme,
@@ -355,6 +335,8 @@ export class HeshevChat extends EventEmitter {
   }
 
   private handleSend(message: string): void {
+    if (!this.wsClient) return;
+
     this.stateManager.clearFollowUpQuestions();
     const messageId = this.stateManager.addUserMessage(message);
     this.wsClient.send({
@@ -370,141 +352,22 @@ export class HeshevChat extends EventEmitter {
   // Public API methods
 
   async connect(): Promise<void> {
+    // Create WebSocket client with the provided URL
+    this.wsClient = new WebSocketClient({
+      url: this.config.websocketUrl,
+      reconnectAttempts: this.config.reconnectAttempts,
+      reconnectDelay: this.config.reconnectDelay,
+    });
+
+    // Setup handlers
+    this.setupWebSocketHandlers();
+
+    // Connect WebSocket
     await this.wsClient.connect();
   }
 
   disconnect(): void {
-    this.wsClient.disconnect();
-  }
-
-  async loadContext(jsonUrl: string): Promise<void> {
-    const response = await fetch(jsonUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to load context: ${response.statusText}`);
-    }
-    const data = await response.json();
-    await this.loadContextData(data);
-  }
-
-  async loadContextData(data: Record<string, unknown>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const onReady = () => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        resolve();
-      };
-
-      const onError = (error: { message: string }) => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        reject(new Error(error.message));
-      };
-
-      this.wsClient.on('ready', onReady);
-      this.wsClient.on('serverError', onError);
-
-      this.wsClient.send({
-        type: 'context',
-        payload: {
-          data,
-          contextId: generateId(),
-        },
-      });
-    });
-  }
-
-  /**
-   * Load file content to be used as context
-   * Can be called multiple times - replaces previous file content
-   */
-  async loadFile(content: string, filename?: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const onReady = () => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        resolve();
-      };
-
-      const onError = (error: { message: string }) => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        reject(new Error(error.message));
-      };
-
-      this.wsClient.on('ready', onReady);
-      this.wsClient.on('serverError', onError);
-
-      this.wsClient.send({
-        type: 'file',
-        payload: {
-          content,
-          filename,
-        },
-      });
-    });
-  }
-
-  /**
-   * Load metadata (additional JSON data) to be included in system context
-   * Can be called multiple times
-   * @param data - JSON object or string
-   * @param merge - If true, merges with existing metadata; if false, replaces it
-   */
-  async loadMetadata(data: Record<string, unknown> | string, merge = false): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const onReady = () => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        resolve();
-      };
-
-      const onError = (error: { message: string }) => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        reject(new Error(error.message));
-      };
-
-      this.wsClient.on('ready', onReady);
-      this.wsClient.on('serverError', onError);
-
-      this.wsClient.send({
-        type: 'metadata',
-        payload: {
-          data,
-          merge,
-        },
-      });
-    });
-  }
-
-  /**
-   * Set or update system instructions
-   * Can be called multiple times - replaces previous instructions
-   */
-  async setSystemInstructions(instructions: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const onReady = () => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        resolve();
-      };
-
-      const onError = (error: { message: string }) => {
-        this.wsClient.off('ready', onReady);
-        this.wsClient.off('serverError', onError);
-        reject(new Error(error.message));
-      };
-
-      this.wsClient.on('ready', onReady);
-      this.wsClient.on('serverError', onError);
-
-      this.wsClient.send({
-        type: 'instructions',
-        payload: {
-          content: instructions,
-        },
-      });
-    });
+    this.wsClient?.disconnect();
   }
 
   send(message: string): void {
@@ -513,13 +376,13 @@ export class HeshevChat extends EventEmitter {
 
   new(): void {
     this.stateManager.clearMessages();
-    this.wsClient.send({ type: 'new_conversation' });
+    this.wsClient?.send({ type: 'new_conversation' });
     this.render();
   }
 
   reset(): void {
     this.stateManager.reset();
-    this.wsClient.send({ type: 'reset' });
+    this.wsClient?.send({ type: 'reset' });
     this.render();
   }
 
@@ -609,7 +472,7 @@ export class HeshevChat extends EventEmitter {
   }
 
   getStatus(): ConnectionStatus {
-    return this.wsClient.status;
+    return this.wsClient?.status ?? 'disconnected';
   }
 
   isReady(): boolean {
@@ -617,6 +480,6 @@ export class HeshevChat extends EventEmitter {
   }
 
   isConnected(): boolean {
-    return this.wsClient.isConnected();
+    return this.wsClient?.isConnected() ?? false;
   }
 }

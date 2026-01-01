@@ -6,6 +6,8 @@ export interface Config {
   port: number;
   wsPath: string;
   corsOrigin: string;
+  apiKey: string;
+  apiSecret: string;
   googleApiKey: string;
   defaultModel: string;
   maxTokens: number;
@@ -59,6 +61,8 @@ export const config: Config = {
   port: getEnvNumber('PORT', 3001),
   wsPath: getEnvVar('WS_PATH', '/ws'),
   corsOrigin: getEnvVar('CORS_ORIGIN', '*'),
+  apiKey: getEnvVar('API_KEY', ''),
+  apiSecret: getEnvVar('API_SECRET', ''),
   googleApiKey: getEnvVar('GOOGLE_API_KEY', ''),
   defaultModel: getEnvVar('DEFAULT_MODEL', 'gemini-2.5-pro'),
   maxTokens: getEnvNumber('MAX_TOKENS', 4096),
