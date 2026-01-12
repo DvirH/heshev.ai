@@ -1,0 +1,65 @@
+name: Deploy Chat SDK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chat.sdk/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: chat.sdk/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: chat.sdk
+        run: pnpm install --frozen-lockfile
+
+      - name: Build SDK
+        working-directory: chat.sdk
+        run: pnpm build
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Upload to Azure Blob Storage
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob upload-batch \
+              --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+              --destination '$web' \
+              --source chat.sdk/dist/ \
+              --overwrite
+
+      - name: Purge CDN cache
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az cdn endpoint purge \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --profile-name ${{ secrets.AZURE_CDN_PROFILE }} \
+              --name ${{ secrets.AZURE_CDN_ENDPOINT }} \
+              --content-paths '/*'

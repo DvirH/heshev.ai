@@ -1,0 +1,51 @@
+name: Deploy Chat Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chat.server/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: chat.server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: chat.server
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Server
+        working-directory: chat.server
+        run: pnpm build
+
+      - name: Create deployment package
+        working-directory: chat.server
+        run: |
+          rm -f deploy.zip
+          zip -r deploy.zip dist/ package.json pnpm-lock.yaml
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: chat.server/deploy.zip
